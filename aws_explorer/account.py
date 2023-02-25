@@ -10,9 +10,9 @@
 """
 
 import json
+import logging
 
 import boto3
-import logging
 
 # from .logger import get_logger
 
@@ -28,15 +28,24 @@ class S3Manager:
     """This class is used to manage S3 resources."""
 
     def __init__(self, session):
-        # logger.info("Creating S3Manager...")
-        self.s3 = session.client("s3")
+        # self.logger = logging.getLogger(__name__)
+        # logging.basicConfig(level=logging.DEBUG,
+        #                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        # self.logger.debug("Phil")
+        # # logger.info("Creating S3Manager...")
+
+        self.session = session
+        self.s3 = self.session.client("s3")
         self._buckets = None
+
+        print(self.s3.list_buckets())
 
     @property
     def buckets(self):
         """This property is used to get a list of S3 buckets."""
         if not self._buckets:
             response = self.s3.list_buckets()["Buckets"]
+            print(response)
             self._buckets = response
         return self._buckets
 
@@ -64,12 +73,19 @@ class EC2Manager:
     """This class is used to manage EC2 resources."""
 
     def __init__(self, session):
-        # logger.info("Creating EC2Manager...")
+        self.logger = logging.getLogger(__name__)
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        )
+        self.logger.debug("Phil")
+
+        self.session = session
         self.ec2 = session.client("ec2")
-        self._instances: list[object] = []
+        self._instances = list
 
     @property
-    def instances(self) -> list[object]:
+    def instances(self):
         """This property is used to get a list of EC2 instances."""
         if not self._instances:
             instances = self.ec2.describe_instances()["Reservations"]
@@ -105,9 +121,17 @@ class STSManager:
     """This class is used to manage STS resources."""
 
     def __init__(self, session):
+        self.logger = logging.getLogger(__name__)
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        )
+        self.logger.debug("Phil")
         print(f">   STS Manager: {session}")
         # logger.info("Creating STSManager...")
-        self.sts = session.client("sts")
+
+        self.session = session
+        self.sts = self.session.client("sts")
         self._identity = None
 
     @property
@@ -138,13 +162,23 @@ class STSManager:
 # ---------------------------------------------------------------------------- #
 #                                  IAMManager                                  #
 # ---------------------------------------------------------------------------- #
+# iam
+# users
+# alias
 
 
 class IAMManager:
     """This class is used to manage IAM resources."""
 
     def __init__(self, session):
+        self.logger = logging.getLogger(__name__)
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        )
+        self.logger.debug("Phil")
         # logger.info("Creating IAMManager...")
+        self.session = session
         self.iam = session.client("iam")
         self._users = None
         self._alias = None
@@ -191,18 +225,22 @@ class Account:
 
     def __init__(self, profile_name=None):
         self.logger = logging.getLogger(__name__)
-
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        )
+        self.logger.debug("Phil")
         # Set logger level
-        self.logger.setLevel(logging.DEBUG)
+        # self.logger.setLevel(logging.DEBUG)
 
-        print(f">   Account:init:profile_name={profile_name}")
+        self.logger.debug(f">   Account:init:profile_name={profile_name}")
 
         # logger.info("Creating Account...")
 
         self.profile = profile_name
 
         self.session = boto3.Session(profile_name=profile_name)
-        print(f"    Account:init:session={self.session}")
+        self.logger.debug(f"    Account:init:session={self.session}")
 
         self.sts = STSManager(self.session)
 
@@ -229,7 +267,8 @@ class Account:
         }
 
         response = json.dumps(response)
-        # print(f"<   Account")
+        self.logger.debug("<   Account:repr")
+        self.logger.debug("Phil")
         return response
 
 
