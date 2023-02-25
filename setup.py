@@ -11,8 +11,10 @@ setup(
     author_email="matheson.phillip@gmail.com",
     packages=find_packages(),
     install_requires=[
-        "boto3==1.24.28",
-        "moto==4.1.3",
-        "setuptools==65.5.0",
+        "boto3 == 1.24.28",
+        "Faker == 17.3.0",
+        "moto == 4.1.3",
+        "pytest == 7.2.1",
+        "setuptools == 65.5.0",
     ],
 )
