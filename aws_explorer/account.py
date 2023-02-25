@@ -14,10 +14,94 @@ import logging
 
 import boto3
 
-# from .logger import get_logger
 
-# logger = get_logger(__name__)
-# logger.info("Starting program...")
+# ---------------------------------------------------------------------------- #
+#                                CloudFormation                                #
+# ---------------------------------------------------------------------------- #
+class ECSManager:
+    def __init__(self, session):
+        print("")
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.DEBUG)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+        ch.setFormatter(formatter)
+        self.logger.addHandler(ch)
+        self.session = session
+        self.ecs = self.session.client("ecs")
+        self._stacks = None
+        self.logger.info("")
+        print("ECS")
+
+
+# ---------------------------------------------------------------------------- #
+#                                CloudFormation                                #
+# ---------------------------------------------------------------------------- #
+class lambdaManager:
+    def __init__(self, session):
+        print("")
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.DEBUG)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+        ch.setFormatter(formatter)
+        self.logger.addHandler(ch)
+        self.session = session
+        self.lamb = self.session.client("lambda")
+        self._functions = None
+        self.logger.info("")
+        print("LAMB")
+
+
+# ---------------------------------------------------------------------------- #
+#                                CloudFormation                                #
+# ---------------------------------------------------------------------------- #
+class BackupManager:
+    def __init__(self, session):
+        print("")
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.DEBUG)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+        ch.setFormatter(formatter)
+        self.logger.addHandler(ch)
+        self.session = session
+        self.cf = self.session.client("backup")
+        self._stacks = None
+        self.logger.info("")
+        print("CF")
+
+
+# ---------------------------------------------------------------------------- #
+#                                CloudFormation                                #
+# ---------------------------------------------------------------------------- #
+class CloudFormationManager:
+    def __init__(self, session):
+        print("")
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.DEBUG)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+        ch.setFormatter(formatter)
+        self.logger.addHandler(ch)
+        self.session = session
+        self.cf = self.session.client("cloudformation")
+        self._stacks = None
+        self.logger.info("")
+        print("")
+
 
 # ---------------------------------------------------------------------------- #
 #                                   S3Manager                                  #
@@ -28,21 +112,24 @@ class S3Manager:
     """This class is used to manage S3 resources."""
 
     def __init__(self, session):
-        # self.logger = logging.getLogger(__name__)
-        # logging.basicConfig(level=logging.DEBUG,
-        #                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        # self.logger.debug("Phil")
-        # # logger.info("Creating S3Manager...")
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+        ch.setFormatter(formatter)
+        self.logger.addHandler(ch)
 
         self.session = session
         self.s3 = self.session.client("s3")
         self._buckets = None
 
-        print(self.s3.list_buckets())
-
     @property
     def buckets(self):
         """This property is used to get a list of S3 buckets."""
+
         if not self._buckets:
             response = self.s3.list_buckets()["Buckets"]
             print(response)
@@ -58,7 +145,6 @@ class S3Manager:
         for key, val in self.__dict__.items():
             if key == "s3":
                 continue
-
             repr_str += f"{key}: {val}, "
 
         return f"S3Manager({repr_str[:-2]})"
@@ -74,11 +160,14 @@ class EC2Manager:
 
     def __init__(self, session):
         self.logger = logging.getLogger(__name__)
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        self.logger.setLevel(logging.INFO)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
-        self.logger.debug("Phil")
+        ch.setFormatter(formatter)
+        self.logger.addHandler(ch)
 
         self.session = session
         self.ec2 = session.client("ec2")
@@ -122,13 +211,14 @@ class STSManager:
 
     def __init__(self, session):
         self.logger = logging.getLogger(__name__)
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        self.logger.setLevel(logging.INFO)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
-        self.logger.debug("Phil")
-        print(f">   STS Manager: {session}")
-        # logger.info("Creating STSManager...")
+        ch.setFormatter(formatter)
+        self.logger.addHandler(ch)
 
         self.session = session
         self.sts = self.session.client("sts")
@@ -172,12 +262,15 @@ class IAMManager:
 
     def __init__(self, session):
         self.logger = logging.getLogger(__name__)
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        self.logger.setLevel(logging.INFO)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
-        self.logger.debug("Phil")
-        # logger.info("Creating IAMManager...")
+        ch.setFormatter(formatter)
+        self.logger.addHandler(ch)
+
         self.session = session
         self.iam = session.client("iam")
         self._users = None
@@ -225,18 +318,14 @@ class Account:
 
     def __init__(self, profile_name=None):
         self.logger = logging.getLogger(__name__)
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        self.logger.setLevel(logging.DEBUG)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
-        self.logger.debug("Phil")
-        # Set logger level
-        # self.logger.setLevel(logging.DEBUG)
-
-        self.logger.debug(f">   Account:init:profile_name={profile_name}")
-
-        # logger.info("Creating Account...")
-
+        ch.setFormatter(formatter)
+        self.logger.addHandler(ch)
         self.profile = profile_name
 
         self.session = boto3.Session(profile_name=profile_name)
@@ -254,22 +343,27 @@ class Account:
         self.s3 = S3Manager(self.session)
         self.ec2 = EC2Manager(self.session)
 
-    def to_dict(self):
-        """This method is used to convert the object to Dict."""
-        return self.__dict__
+        self.cf = CloudFormationManager(self.session)
+        self.backup = BackupManager(self.session)
+        self.lamb = lambdaManager(self.session)
+        self.ecs = ECSManager(self.session)
 
-    def __repr__(self):
-        response = {
-            "id": self.id,
-            "user": self.user,
-            "name": self.name,
-            "alias": self.alias,
-        }
+        def to_dict(self):
+            """This method is used to convert the object to Dict."""
+            return self.__dict__
 
-        response = json.dumps(response)
-        self.logger.debug("<   Account:repr")
-        self.logger.debug("Phil")
-        return response
+        def __repr__(self):
+            response = {
+                "id": self.id,
+                "user": self.user,
+                "name": self.name,
+                "alias": self.alias,
+            }
+
+            response = json.dumps(response)
+            self.logger.debug("<   Account:repr")
+            self.logger.debug("Phil")
+            return response
 
 
 # ---------------------------------------------------------------------------- #
