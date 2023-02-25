@@ -2,6 +2,9 @@ import boto3
 from moto import mock_s3
 from aws_explorer import S3Manager
 import pytest
+import os
+
+os.environ["AWS_DEFAULT_REGION"] = "ap-southeast-2"
 
 
 @mock_s3

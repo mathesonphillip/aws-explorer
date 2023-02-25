@@ -2,6 +2,9 @@ import boto3
 from moto import mock_ec2
 from aws_explorer import EC2Manager
 import pytest
+import os
+
+os.environ["AWS_DEFAULT_REGION"] = "ap-southeast-2"
 
 
 @mock_ec2
