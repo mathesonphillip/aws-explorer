@@ -10,7 +10,7 @@
 
 import json
 
-import boto3 as b3
+import boto3
 
 from .logger import get_logger
 
@@ -25,7 +25,7 @@ logger.info("Starting program...")
 class S3Manager:
     """This class is used to manage S3 resources."""
 
-    def __init__(self, session: b3.Session):
+    def __init__(self, session: boto3.Session):
         logger.info("Creating S3Manager...")
         self.s3 = session.client("s3")
         self._buckets = None
@@ -38,12 +38,19 @@ class S3Manager:
             self._buckets = response
         return self._buckets
 
-    def to_json(self):
-        """This method is used to convert the S3Manager object to JSON."""
-        return json.dumps(self.__dict__, default=str)
+    def to_dict(self):
+        """This method is used to convert the object to Dict."""
+        return self.__dict__
 
     def __repr__(self):
-        return self.to_json()
+        repr_str = ""
+        for key, val in self.__dict__.items():
+            if key == "s3":
+                continue
+
+            repr_str += f"{key}: {val}, "
+
+        return f"S3Manager({repr_str[:-2]})"
 
 
 # ---------------------------------------------------------------------------- #
@@ -54,7 +61,7 @@ class S3Manager:
 class EC2Manager:
     """This class is used to manage EC2 resources."""
 
-    def __init__(self, session: b3.Session):
+    def __init__(self, session: boto3.Session):
         logger.info("Creating EC2Manager...")
         self.ec2 = session.client("ec2")
         self._instances: list[object] = []
@@ -72,12 +79,19 @@ class EC2Manager:
 
         return self._instances
 
-    def to_json(self):
-        """This method is used to convert the EC2Manager object to JSON."""
-        return json.dumps(self.__dict__, default=str)
+    def to_dict(self):
+        """This method is used to convert the object to Dict."""
+        return self.__dict__
 
     def __repr__(self):
-        return self.to_json()
+        repr_str = ""
+        for key, val in self.__dict__.items():
+            if key == "ec2":
+                continue
+
+            repr_str += f"{key}: {val}, "
+
+        return f"EC2Manager({repr_str[:-2]})"
 
 
 # ---------------------------------------------------------------------------- #
@@ -88,7 +102,7 @@ class EC2Manager:
 class STSManager:
     """This class is used to manage STS resources."""
 
-    def __init__(self, session: b3.Session):
+    def __init__(self, session: boto3.Session):
         logger.info("Creating STSManager...")
         self.sts = session.client("sts")
         self._identity = None
@@ -98,15 +112,23 @@ class STSManager:
         """This property is used to get the identity of the caller."""
         if not self._identity:
             response = self.sts.get_caller_identity()
+            del response["ResponseMetadata"]
             self._identity = response
         return self._identity
 
-    def to_json(self):
-        """This method is used to convert the STSManager object to JSON."""
-        return json.dumps(self.__dict__, default=str)
+    def to_dict(self):
+        """This method is used to convert the object to Dict."""
+        return self.__dict__
 
     def __repr__(self):
-        return self.to_json()
+        repr_str = ""
+        for key, val in self.__dict__.items():
+            if key == "sts":
+                continue
+
+            repr_str += f"{key}: {val}, "
+
+        return f"STSManager({repr_str[:-2]})"
 
 
 # ---------------------------------------------------------------------------- #
@@ -117,7 +139,7 @@ class STSManager:
 class IAMManager:
     """This class is used to manage IAM resources."""
 
-    def __init__(self, session: b3.Session):
+    def __init__(self, session: boto3.Session):
         logger.info("Creating IAMManager...")
         self.iam = session.client("iam")
         self._users = None
@@ -140,12 +162,19 @@ class IAMManager:
                 self._alias = response[0]
         return self._alias
 
-    def to_json(self):
-        """This method is used to convert the IAMManager object to JSON."""
-        return json.dumps(self.__dict__, default=str)
+    def to_dict(self):
+        """This method is used to convert the object to Dict."""
+        return self.__dict__
 
     def __repr__(self):
-        return self.to_json()
+        repr_str = ""
+        for key, val in self.__dict__.items():
+            if key == "iam":
+                continue
+
+            repr_str += f"{key}: {val}, "
+
+        return f"IAMManager({repr_str[:-2]})"
 
 
 # ---------------------------------------------------------------------------- #
@@ -160,7 +189,7 @@ class Account:
         logger.info("Creating Account...")
 
         self.profile = profile_name
-        self.session = b3.Session(profile_name=profile_name)
+        self.session = boto3.Session(profile_name=profile_name)
 
         self.sts = STSManager(self.session)
         identity = self.sts.identity
@@ -173,8 +202,8 @@ class Account:
         self.s3 = S3Manager(self.session)
         self.ec2 = EC2Manager(self.session)
 
-    def to_json(self):
-        """This method is used to convert the Account object to JSON."""
+    def to_dict(self):
+        """This method is used to convert the object to Dict."""
         return self.__dict__
 
     def __repr__(self):
