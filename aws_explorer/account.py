@@ -12,11 +12,12 @@
 import json
 
 import boto3
+import logging
 
-from .logger import get_logger
+# from .logger import get_logger
 
-logger = get_logger(__name__)
-logger.info("Starting program...")
+# logger = get_logger(__name__)
+# logger.info("Starting program...")
 
 # ---------------------------------------------------------------------------- #
 #                                   S3Manager                                  #
@@ -26,8 +27,8 @@ logger.info("Starting program...")
 class S3Manager:
     """This class is used to manage S3 resources."""
 
-    def __init__(self, session: boto3.Session):
-        logger.info("Creating S3Manager...")
+    def __init__(self, session):
+        # logger.info("Creating S3Manager...")
         self.s3 = session.client("s3")
         self._buckets = None
 
@@ -62,8 +63,8 @@ class S3Manager:
 class EC2Manager:
     """This class is used to manage EC2 resources."""
 
-    def __init__(self, session: boto3.Session):
-        logger.info("Creating EC2Manager...")
+    def __init__(self, session):
+        # logger.info("Creating EC2Manager...")
         self.ec2 = session.client("ec2")
         self._instances: list[object] = []
 
@@ -103,8 +104,9 @@ class EC2Manager:
 class STSManager:
     """This class is used to manage STS resources."""
 
-    def __init__(self, session: boto3.Session):
-        logger.info("Creating STSManager...")
+    def __init__(self, session):
+        print(f">   STS Manager: {session}")
+        # logger.info("Creating STSManager...")
         self.sts = session.client("sts")
         self._identity = None
 
@@ -129,6 +131,7 @@ class STSManager:
 
             repr_str += f"{key}: {val}, "
 
+        # print(f"<   STS Manager:")
         return f"STSManager({repr_str[:-2]})"
 
 
@@ -140,8 +143,8 @@ class STSManager:
 class IAMManager:
     """This class is used to manage IAM resources."""
 
-    def __init__(self, session: boto3.Session):
-        logger.info("Creating IAMManager...")
+    def __init__(self, session):
+        # logger.info("Creating IAMManager...")
         self.iam = session.client("iam")
         self._users = None
         self._alias = None
@@ -186,13 +189,23 @@ class IAMManager:
 class Account:
     """This class is used to manage AWS accounts."""
 
-    def __init__(self, profile_name: str | None = None):
-        logger.info("Creating Account...")
+    def __init__(self, profile_name=None):
+        self.logger = logging.getLogger(__name__)
+
+        # Set logger level
+        self.logger.setLevel(logging.DEBUG)
+
+        print(f">   Account:init:profile_name={profile_name}")
+
+        # logger.info("Creating Account...")
 
         self.profile = profile_name
+
         self.session = boto3.Session(profile_name=profile_name)
+        print(f"    Account:init:session={self.session}")
 
         self.sts = STSManager(self.session)
+
         identity = self.sts.identity
         self.id = identity.get("Account")
         self.user = identity.get("UserId")
@@ -216,6 +229,7 @@ class Account:
         }
 
         response = json.dumps(response)
+        # print(f"<   Account")
         return response
 
 
