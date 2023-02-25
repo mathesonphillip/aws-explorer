@@ -1,6 +1,10 @@
 # aws-explorer
 
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
+
 [![Build Status](https://travis-ci.org/awslabs/aws-explorer.svg?branch=master)](https://travis-ci.org/awslabs/aws-explorer)
+
+
 
 `aws-explorer` is a Python package that provides a convenient and consistent way to manage, query and report on AWS resources using the AWS SDK for Python (Boto3). The package is designed to be used in Jupyter Notebooks, and provides importable modules for each AWS service, with classes for each resource type, and methods to help manage, query and report on the resource type.
 
@@ -60,11 +64,11 @@ df_buckets = pd.DataFrame(buckets)
 
 Contributions to the `aws-explorer` package are welcome! If you find a bug, have a feature request, or would like to contribute code, please create a new issue or pull request on the GitHub repository.
 
-Before contributing, please read the `CONTRIBUTING.md` file for guidelines on how to contribute to the project.
+Before contributing, please read the CONTRIBUTING.md file for guidelines on how to contribute to the project.
 
 ## License
 
-The `aws-explorer` package is licensed under the MIT License. See the `LICENSE.md` file for more information.
+The `aws-explorer` package is licensed under the MIT License. See the LICENSE.md file for more information.
 
 
 

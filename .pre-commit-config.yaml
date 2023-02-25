@@ -1,9 +1,68 @@
 repos:
-- repo: https://github.com/psf/black
-  rev: 23.1.0
-  hooks:
-  - id: black
-- repo: https://github.com/PyCQA/flake8
-  rev: 6.0.0
-  hooks:
-  - id: flake8
+  - repo: https://github.com/psf/black
+    rev: 23.1.0
+    hooks:
+      - id: black
+  - repo: https://github.com/PyCQA/flake8
+    rev: 6.0.0
+    hooks:
+      - id: flake8
+
+  # ---------------------------------------------------------------------------- #
+
+  # ---------------------------------------------------------------------------- #
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-docstring-first
+      - id: check-executables-have-shebangs
+      - id: check-json
+      - id: check-shebang-scripts-are-executable
+
+      - id: detect-aws-credentials
+      - id: detect-private-key
+      # - id: double-quote-string-fixer
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+      - id: trailing-whitespace
+      - id: debug-statements
+
+  # - repo: https://gitlab.com/iamlikeme/nbhooks
+  #   rev: 1.0.0
+  #   hooks:
+  # - id: nb-ensure-clean
+
+  # ---------------------------------------------------------------------------- #
+  #                                     Test                                     #
+  # ---------------------------------------------------------------------------- #
+
+  # - repo: local
+  #   hooks:
+  #     - id: Run tests
+  #       name: Run tests
+  #       entry: pytest
+  #       language: system
+  #       pass_filenames: false
+  #       always_run: false
+
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.6.1
+    hooks:
+      - id: nbstripout
+
+  - repo: https://github.com/psf/black
+    rev: 23.1.0
+    hooks:
+      - id: black-jupyter
+  - repo: https://github.com/nbQA-dev/nbQA
+    rev: 1.6.3
+    hooks:
+      # - id: nbqa
+      - id: nbqa-isort
+      - id: nbqa-pyupgrade
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.13.12
+    hooks:
+      # - id: nbqa
+      - id: typos

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """ This module contains the Account class and its related classes.
     The Account class is the main class of the aws_explorer package.
     It is used to create an object that represents an AWS account.
