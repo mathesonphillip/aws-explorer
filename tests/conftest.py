@@ -22,8 +22,9 @@ AWS_SECRET_ACCESS_KEY = fake.md5(raw_output=False)
 AWS_SECURITY_TOKEN = fake.sha256(raw_output=False)
 AWS_SESSION_TOKEN = fake.sha1(raw_output=False)
 
-
 # Define fixtures
+
+
 @pytest.fixture(scope="function")
 def aws_credentials():
     """Mocked AWS Credentials for moto."""
