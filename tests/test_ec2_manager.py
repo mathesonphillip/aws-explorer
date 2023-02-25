@@ -1,11 +1,11 @@
 # import boto3
-from moto import mock_ec2
+# from moto import mock_ec2
 
 # from aws_explorer import EC2Manager
 # from random import choice
 
 
-@mock_ec2
+# @mock_ec2
 def test_ec2_manager():
     # ec2 = boto3.client("ec2")
     # ec2
