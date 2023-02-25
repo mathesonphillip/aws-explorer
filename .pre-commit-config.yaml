@@ -43,13 +43,7 @@ repos:
   #       name: Run tests
   #       entry: pytest
   #       language: system
-  #       pass_filenames: false
   #       always_run: false
-
-  - repo: https://github.com/kynan/nbstripout
-    rev: 0.6.1
-    hooks:
-      - id: nbstripout
 
   - repo: https://github.com/psf/black
     rev: 23.1.0
@@ -66,3 +60,8 @@ repos:
     hooks:
       # - id: nbqa
       - id: typos
+  # - repo: https://github.com/kynan/nbstripout
+  #   rev: 0.6.1
+  #   hooks:
+  #     - id: nbstripout
+  #       pass_filenames: true
