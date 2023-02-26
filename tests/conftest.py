@@ -1,82 +1,76 @@
 import os
 
-import boto3
-import pytest
-from faker import Faker
+from boto3 import Session
+from pytest import fixture
 
-from aws_explorer import Account, EC2Manager, IAMManager, S3Manager
+from aws_explorer import Account
 
-# Initiate Faker
-fake = Faker()
-Faker.seed(0)
-
-# AWS Credentials (Faker)
 AWS_DEFAULT_REGION = "ap-southeast-2"
-AWS_ACCESS_KEY_ID = fake.password(length=20, special_chars=False, upper_case=False)
-AWS_SECRET_ACCESS_KEY = fake.md5(raw_output=False)
-AWS_SECURITY_TOKEN = fake.sha256(raw_output=False)
-AWS_SESSION_TOKEN = fake.sha1(raw_output=False)
+
+AWS_ACCESS_KEY_ID = "AKIAIOSFODNN7EXAMPLE"
+AWS_SECRET_ACCESS_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+
+CREDENTIALS_CONTENT = f"""
+[default]
+aws_access_key_id     = AKIAIOSFOEAWSDEFAULT
+aws_secret_access_key = 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
+region                = {AWS_DEFAULT_REGION}
+
+[aws-exporter]
+aws_access_key_id     = AKIAIOSFOAWSEXPORTER
+aws_secret_access_key = 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
+region                = {AWS_DEFAULT_REGION}
+"""
+
+# ---------------------------------------------------------------------------- #
 
 
-os.environ["AWS_DEFAULT_REGION"] = "ap-southeast-2"
-# Define fixtures
+@fixture(scope="session")
+def region():
+    return AWS_DEFAULT_REGION
 
 
-@pytest.fixture(scope="function")
-def aws_credentials():
+@fixture(scope="session")
+def access_key():
+    return AWS_ACCESS_KEY_ID
+
+
+@fixture(scope="session")
+def secret_key():
+    return AWS_SECRET_ACCESS_KEY
+
+
+@fixture(scope="session")
+def session(region, access_key, secret_key):
     """Mocked AWS Credentials for moto."""
-    os.environ["AWS_ACCESS_KEY_ID"] = AWS_ACCESS_KEY_ID
-    os.environ["AWS_SECRET_ACCESS_KEY"] = AWS_SECRET_ACCESS_KEY
-    os.environ["AWS_SECURITY_TOKEN"] = AWS_SECURITY_TOKEN
-    os.environ["AWS_SESSION_TOKEN"] = AWS_SESSION_TOKEN
-    os.environ["AWS_DEFAULT_REGION"] = AWS_DEFAULT_REGION
+    os.environ["AWS_DEFAULT_REGION"] = region
+    os.environ["AWS_ACCESS_KEY_ID"] = access_key
+    os.environ["AWS_SECRET_ACCESS_KEY"] = secret_key
+
+    yield Session()
+
+
+@fixture(scope="session")
+def credentials(region, access_key, secret_key):
+    credentials = {
+        "region_name": region,
+        "aws_access_key_id": access_key,
+        "aws_secret_access_key": secret_key,
+    }
+
+    yield credentials
 
 
 # ---------------------------------------------------------------------------- #
-#                                   AWS CREDS                                  #
-# ---------------------------------------------------------------------------- #
-@pytest.fixture(scope="function")
-def aws_session(aws_credentials):
-    yield boto3.Session(aws_credentials)
+@fixture(scope="session")
+def account():
+    yield Account()
 
 
-# ---------------------------------------------------------------------------- #
-#                                  STSManager                                  #
-# ---------------------------------------------------------------------------- #
-
-#
-# @pytest.fixture(scope='function')
-# def STSManager(aws_session):
-#     yield _STSManager(aws_session)
-
-
-# ---------------------------------------------------------------------------- #
-#                                  EC2MANAGER                                  #
-# ---------------------------------------------------------------------------- #
-@pytest.fixture(scope="function")
-def EC2MANAGER(aws_credentials):
-    yield EC2Manager(aws_credentials)
-
-
-# ---------------------------------------------------------------------------- #
-#                                  IAMMANAGER                                  #
-# ---------------------------------------------------------------------------- #
-@pytest.fixture(scope="function")
-def IAMMANAGER(aws_credentials):
-    yield IAMManager(aws_credentials)
-
-
-# ---------------------------------------------------------------------------- #
-#                                   S3MANAGER                                  #
-# ---------------------------------------------------------------------------- #
-@pytest.fixture(scope="function")
-def S3MANAGER(aws_credentials):
-    yield S3Manager(aws_credentials)
-
-
-# ---------------------------------------------------------------------------- #
-#                                    ACCOUNT                                   #
-# ---------------------------------------------------------------------------- #
-@pytest.fixture(scope="function")
-def ACCOUNT(aws_credentials):
-    yield Account(aws_credentials)
+# Fixture that creates a temporary credentials file and returns the path
+@fixture(scope="session")
+def credentials_path(tmp_path_factory):
+    """Create a temporary credentials file and return the path."""
+    path = tmp_path_factory.mktemp("data") / "credentials"
+    path.write_text(CREDENTIALS_CONTENT)
+    yield path

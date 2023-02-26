@@ -9,7 +9,7 @@
 # cd "$(dirname "$(readlink -f "$0")")"
 
 # exit when any command fails
-set -e
+# set -e
 
 # Define the project root
 WATCH_PATH=/home/phil/Projects/aws-explorer
@@ -74,18 +74,22 @@ is_python() {
     # Run black on the src directory
     print_header "black"
     python -m black --exclude __pycache__ "$WATCH_PATH/aws_explorer"
+    python -m black --exclude __pycache__ "$WATCH_PATH/tests"
 
     # Run isort on the src directory
     print_header "isort"
     python -m isort --profile black "$WATCH_PATH/aws_explorer"
+    python -m isort --profile black "$WATCH_PATH/tests"
 
     # Run flake8 on the src directory
     print_header "flake8"
     python -m flake8 --exit-zero --verbose "$WATCH_PATH/aws_explorer"
+    # python -m flake8 --exit-zero --verbose "$WATCH_PATH/tests"
 
     # Run pylint on the src directory
     print_header "pylint"
     pylint --exit-zero --output-format colorized "$WATCH_PATH/aws_explorer"
+    # pylint --exit-zero --output-format colorized "$WATCH_PATH/tests"
 
     # Run pytest on the src directory
     print_header "pytest"
@@ -118,7 +122,7 @@ WATCH_ARGS=(
     # Set in monitor mode, so that inotifywait will not exit after the first event
     --monitor
     # Recursively watch the directory
-    --recursive
+    # --recursive
     # Exclude files matching <patten> <patten> <patten>
     --exclude '\.(git|pyc\.|pyc$|isorted$)'
 
@@ -152,3 +156,27 @@ inotifywait "${WATCH_ARGS[@]}" | while read DIRECTORY EVENT FILE; do
     git_status
 
 done
+
+# while true; do
+#     read DIRECTORY EVENT FILE <<<"$(inotifywait ${WATCH_ARGS[@]} || true)"
+#     # Checks if the file extension is of a type we want to process
+#     # print_header "$FILE"
+
+#     if [[ $FILE =~ \.py$ ]]; then
+#         is_python "$FILE"
+
+#     elif [[ $FILE =~ \.sh$ ]]; then
+#         printf "Workflow not yet implemented (%s, %s)\n" "$DIRECTORY" "$FILE"
+
+#     elif [[ $FILE =~ \.md$ ]]; then
+#         printf "Workflow not yet implemented (%s, %s)\n" "$DIRECTORY" "$FILE"
+
+#     else
+#         printf "Workflow not yet implemented (%s, %s)\n" "$DIRECTORY" "$FILE"
+
+#     fi
+
+#     # After processing the file, print out the git status
+#     git_status
+
+# done
