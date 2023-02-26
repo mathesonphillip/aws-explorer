@@ -10,10 +10,18 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
-addopts = "--strict-markers"
+# addopts = "--strict-markers"
 python_files = "test_*.py *.test.py"
 log_cli = "False"
 log_cli_level = "INFO"
+markers = [
+    # "mark_test: testing mark (deselect with '-m \"not integration\"')",
+    # "ec2: ec2 tests",
+    # "iam: iam tests",
+    # "s3: s3 tests",
+    # "sts: sts tests",
+    # "account: account tests",
+]
 
 [tool.pylint]
 max-line-length = 120
@@ -27,6 +35,7 @@ disable = [
     "R0913", # (too-many-arguments)
     "W0105", # (pointless-string-statement)
     "W0611", # (unused-import)
+    "W1203", # (logging-fstring-interpolation)
 ]
 
 # Using a 3rd party tool to make flake8 work with this file
