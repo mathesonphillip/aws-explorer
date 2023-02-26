@@ -21,12 +21,14 @@ from .sts import STSManager
 class Account:
     """This class is used to manage AWS accounts."""
 
-    def __init__(self, profile_name=None, credentials=None):
+    def __init__(self, profile_name=None, credentials=None, region_name=None):
         self.logger = logging.getLogger(__name__)
 
         if profile_name:
             self.logger.debug(f"Creating account from profile: {profile_name}")
-            self.session = boto3.Session(profile_name=profile_name)
+            self.session = boto3.Session(
+                profile_name=profile_name, region_name=region_name
+            )
 
         elif credentials:
             self.logger.debug("Creating account from credentials: {credentials}")

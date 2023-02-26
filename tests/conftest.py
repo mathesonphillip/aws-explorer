@@ -52,8 +52,8 @@ def credentials(region, access_key, secret_key):
 
 # ---------------------------------------------------------------------------- #
 @fixture(scope="session")
-def account():
-    yield Account()
+def account(credentials):
+    yield Account(credentials=credentials, region_name=AWS_DEFAULT_REGION)
 
 
 # Fixture that creates a temporary credentials file and returns the path
