@@ -1,8 +1,10 @@
-import boto3
-from moto import mock_sts
-from aws_explorer import STSManager
-import pytest
 import os
+
+import boto3
+import pytest
+from moto import mock_sts
+
+from aws_explorer import STSManager
 
 os.environ["AWS_DEFAULT_REGION"] = "ap-southeast-2"
 
@@ -27,7 +29,7 @@ class TestSTSManager:
         with pytest.raises(AttributeError):
             sts = STSManager(data_type)
 
-    # ---------------------------------------------------------------------------- #
+    # ----------------------------------------------------------------------------
 
     def test_sts_manager_should_fail_when_not_given_str_for_session_param(self):
         with pytest.raises(AttributeError):

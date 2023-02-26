@@ -1,23 +1,20 @@
-""" This module contains a function to get a logger."""
 import logging
+import sys
 
 
-def get_logger(name: str):
-    """This function is used to get a logger."""
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
+def configure_logging():
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
 
-    # create a console handler and set its level to INFO
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.INFO)
+    # create console handler and set level to DEBUG
+    ch = logging.StreamHandler(sys.stdout)
+    ch.setLevel(logging.DEBUG)
 
-    # create a formatter and add it to the handler
+    # create formatter and add it to the handlers
     formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        "%(asctime)s [%(name)s] %(levelname)s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
     )
     ch.setFormatter(formatter)
-
-    # add the handler to the logger
     logger.addHandler(ch)
 
     return logger

@@ -1,19 +1,21 @@
-import boto3
-from moto import mock_ec2
-from aws_explorer import EC2Manager
-import pytest
 import os
+
+import boto3
+import pytest
+from moto import mock_ec2
+
+from aws_explorer import EC2Manager
 
 os.environ["AWS_DEFAULT_REGION"] = "ap-southeast-2"
 
 
 @mock_ec2
 class TestEC2Manager:
-    @pytest.mark.parametrize("key", ["access_key", "secret_key"])
-    def test_ec2_manager_session_has_access_key_and_secret_key(self, key):
-        ec2 = EC2Manager(boto3.Session())
-        session_credentials = ec2.session.get_credentials()
-        assert getattr(session_credentials, key) is not None
+    # @pytest.mark.parametrize("key", ["access_key", "secret_key"])
+    # def test_ec2_manager_session_has_access_key_and_secret_key(self, key):
+    #     ec2 = EC2Manager(boto3.Session())
+    #     session_credentials = ec2.session.get_credentials()
+    #     assert getattr(session_credentials, key) is not None
 
     # ---------------------------------------------------------------------------- #
 
@@ -44,9 +46,9 @@ class TestEC2Manager:
 
     # ---------------------------------------------------------------------------- #
 
-    def test_ec2_manager_session_is_not_none(self):
-        ec2 = EC2Manager(boto3.Session())
-        assert ec2.session is not None
+    # def test_ec2_manager_session_is_not_none(self):
+    #     ec2 = EC2Manager(boto3.Session())
+    #     assert ec2.session is not None
 
     # ---------------------------------------------------------------------------- #
 

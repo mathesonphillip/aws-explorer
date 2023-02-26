@@ -1,8 +1,10 @@
-import boto3
-from moto import mock_iam
-from aws_explorer import IAMManager
-import pytest
 import os
+
+import boto3
+import pytest
+from moto import mock_iam
+
+from aws_explorer import IAMManager
 
 os.environ["AWS_DEFAULT_REGION"] = "ap-southeast-2"
 

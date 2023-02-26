@@ -73,7 +73,7 @@ is_python() {
 
     # Run black on the src directory
     print_header "black"
-    python -m black "$WATCH_PATH/aws_explorer"
+    python -m black --exclude __pycache__ "$WATCH_PATH/aws_explorer"
 
     # Run isort on the src directory
     print_header "isort"
@@ -120,7 +120,7 @@ WATCH_ARGS=(
     # Recursively watch the directory
     --recursive
     # Exclude files matching <patten> <patten> <patten>
-    --exclude '\.(git|pyc\.|pyc$)'
+    --exclude '\.(git|pyc\.|pyc$|isorted$)'
 
     # The directory to watch, you can add more than one
     "$WATCH_PATH/aws_explorer"

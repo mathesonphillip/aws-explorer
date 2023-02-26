@@ -4,12 +4,7 @@ import boto3
 import pytest
 from faker import Faker
 
-from aws_explorer import (
-    Account,
-    EC2Manager,
-    IAMManager,
-    S3Manager,
-)
+from aws_explorer import Account, EC2Manager, IAMManager, S3Manager
 
 # Initiate Faker
 fake = Faker()
