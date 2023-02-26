@@ -12,39 +12,29 @@ class TestS3Manager:
         self, data_type
     ):
         with raises(AttributeError):
-            s3 = S3Manager(data_type)
+            S3Manager(data_type)
 
     # ---------------------------------------------------------------------------- #
 
-    def test_s3_manager_is_not_none(self, session):
-        s3 = S3Manager(session)
-        assert s3 is not None
+    def test_s3_manager_is_not_none(self, account):
+        assert account.s3 is not None
 
     # ---------------------------------------------------------------------------- #
 
-    def test_s3_manager_instance_variable_is_not_none(self, session):
-        s3 = S3Manager(session)
-
-        print(s3.buckets)
-        assert s3.buckets is not None
+    def test_s3_manager_instance_variable_is_not_none(self, account):
+        assert account.s3.buckets is not None
 
     # ---------------------------------------------------------------------------- #
 
-    def test_s3_manager_printable_representation_is_type_string(self, session):
-        s3 = S3Manager(session)
-        assert type(repr(s3)) == str
+    def test_s3_manager_printable_representation_is_type_string(self, account):
+        assert type(repr(account.s3)) == str
 
     # ---------------------------------------------------------------------------- #
 
-    def test_s3_manager_bucket_var_is_type_list(self, session):
-        session = session
-        s3 = S3Manager(session)
-
-        assert type(s3.buckets) == list
+    def test_s3_manager_bucket_var_is_type_list(self, account):
+        assert type(account.s3.buckets) == list
 
     # ---------------------------------------------------------------------------- #
 
-    def test_s3_manager_instance_to_dict_is_type_dict(self, session):
-        session = session
-        s3 = S3Manager(session)
-        assert type(s3.to_dict()) == dict
+    def test_s3_manager_instance_to_dict_is_type_dict(self, account):
+        assert type(account.s3.to_dict()) == dict

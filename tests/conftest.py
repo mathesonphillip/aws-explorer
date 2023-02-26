@@ -1,6 +1,5 @@
 import os
 
-from boto3 import Session
 from pytest import fixture
 
 from aws_explorer import Account
@@ -38,16 +37,6 @@ def access_key():
 @fixture(scope="session")
 def secret_key():
     return AWS_SECRET_ACCESS_KEY
-
-
-@fixture(scope="session")
-def session(region, access_key, secret_key):
-    """Mocked AWS Credentials for moto."""
-    os.environ["AWS_DEFAULT_REGION"] = region
-    os.environ["AWS_ACCESS_KEY_ID"] = access_key
-    os.environ["AWS_SECRET_ACCESS_KEY"] = secret_key
-
-    yield Session()
 
 
 @fixture(scope="session")

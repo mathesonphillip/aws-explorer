@@ -32,6 +32,21 @@ class TestAccount:
         assert "AWSDEFAULT" in account.session.get_credentials().secret_key
 
     # ---------------------------------------------------------------------------- #
+    def test_account_fails_to_create_with_no_profile_or_region(
+        self,
+        monkeypatch,
+        credentials_path,
+    ):
+        # Mock the AWS_DEFAULT_REGION env var
+        monkeypatch.setenv("AWS_SHARED_CREDENTIALS_FILE", credentials_path.as_posix())
+        monkeypatch.setenv("AWS_SHARED_CREDENTIALS_FILE", credentials_path.as_posix())
+
+        account = Account()
+        assert account.session.profile_name == "default"
+        assert "AWSDEFAULT" in account.session.get_credentials().access_key
+        assert "AWSDEFAULT" in account.session.get_credentials().secret_key
+
+    # ---------------------------------------------------------------------------- #
     def test_account_can_create_with_named_profile(
         self,
         monkeypatch,

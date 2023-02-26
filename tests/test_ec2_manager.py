@@ -12,34 +12,14 @@ class TestEC2Manager:
         self, data_type
     ):
         with raises(AttributeError):
-            ec2 = EC2Manager(data_type)
+            EC2Manager(data_type)
 
     # ---------------------------------------------------------------------------- #
 
-    def test_ec2_manager_is_not_none(self, session):
-        ec2 = EC2Manager(session)
-        assert ec2 is not None
+    def test_ec2_manager_printable_representation_is_type_string(self, account):
+        assert type(repr(account.ec2)) == str
 
     # ---------------------------------------------------------------------------- #
 
-    def test_ec2_manager_instance_variable_is_not_none(self, session):
-        ec2 = EC2Manager(session)
-        assert ec2.instances is not None
-
-    # ---------------------------------------------------------------------------- #
-
-    def test_ec2_manager_printable_representation_is_type_string(self, session):
-        ec2 = EC2Manager(session)
-        assert type(repr(ec2)) == str
-
-    # ---------------------------------------------------------------------------- #
-
-    def test_ec2_manager_instance_var_is_type_list(self, session):
-        ec2 = EC2Manager(session)
-        assert ec2.instances == list
-
-    # ---------------------------------------------------------------------------- #
-
-    def test_ec2_manager_instance_to_dict_is_type_dict(self, session):
-        ec2 = EC2Manager(session)
-        assert type((ec2.to_dict())) == dict
+    def test_ec2_manager_instance_to_dict_is_type_dict(self, account):
+        assert type((account.ec2.to_dict())) == dict

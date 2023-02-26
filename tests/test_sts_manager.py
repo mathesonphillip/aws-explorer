@@ -13,33 +13,24 @@ class TestSTSManager:
         self, data_type
     ):
         with pytest.raises(AttributeError):
-            sts = STSManager(data_type)
+            STSManager(data_type)
 
     # ---------------------------------------------------------------------------- #
 
-    def test_sts_manager_instance_variable_is_not_none(self, session):
-        sts = STSManager(session)
-        assert sts.identity is not None
+    def test_sts_manager_instance_variable_is_not_none(self, account):
+        assert account.sts.identity is not None
 
     # ---------------------------------------------------------------------------- #
 
-    def test_sts_manager_printable_representation_is_type_string(self, session):
-        sts = STSManager(session)
-        assert type(repr(sts)) == str
+    def test_sts_manager_printable_representation_is_type_string(self, account):
+        assert type(repr(account.sts)) == str
 
     # ---------------------------------------------------------------------------- #
 
-    def test_sts_manager_identity_var_is_type_dict(self, session):
-        session = session
-        sts = STSManager(session)
-
-        print(f"{sts.identity}, {type(sts.identity)}")
-
-        assert type(sts.identity) == dict
+    def test_sts_manager_identity_var_is_type_dict(self, account):
+        assert type(account.sts.identity) == dict
 
     # ---------------------------------------------------------------------------- #
 
-    def test_sts_manager_instance_to_dict_is_type_dict(self, session):
-        session = session
-        sts = STSManager(session)
-        assert type(sts.to_dict()) == dict
+    def test_sts_manager_instance_to_dict_is_type_dict(self, account):
+        assert type(account.sts.to_dict()) == dict
