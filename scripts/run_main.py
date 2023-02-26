@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
 # Imports
-from aws_explorer import Account
 import json
+
+from aws_explorer import Account
 
 account = Account()
 
