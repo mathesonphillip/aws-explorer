@@ -1,9 +1,9 @@
 [project]
 name = "aws-explorer"
-description = "description"
+description = "aws-explorer is a CLI tool to explore AWS resources"
 version = "0.1.0"
 authors = [{ name = "Phillip Matheson", email = "matheson.phillip@gmail.com" }]
-dependencies = ["other", "boto3"]
+# dependencies = [ ]
 
 [build-system]
 requires = ["setuptools"]
@@ -58,13 +58,13 @@ per-file-ignores = [
 [tool.tox]
 legacy_tox_ini = """
     [tox]
-    envlist = py39,py310,py311,pytest
+    envlist = py310,py311,pytest
 
     [testenv]
     deps = 
         -rrequirements.txt
 
-    [testenv:py39,py310,py311,pytest]
+    [testenv:py310,py311,pytest]
     commands = pytest
     description = Run pytest
     deps = pytest
