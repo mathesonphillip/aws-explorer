@@ -13,4 +13,5 @@ from .ecs import ECSManager
 from .iam import IAMManager
 from .lambda_manager import LambdaManager
 from .s3 import S3Manager
+from .ssm import SSMManager
 from .sts import STSManager

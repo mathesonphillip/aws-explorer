@@ -18,6 +18,12 @@ class CloudTrailManager:
         if not self._trails:
             self._logger.debug(f"{self._session.profile_name:<20} trails (!cached)")
             response = self.cloudtrail.describe_trails().get("trailList")
+
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
+            ]
+
             self._trails = response
         self._logger.debug(f"{self._session.profile_name:<20} trails (cached)")
         return self._trails

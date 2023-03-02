@@ -16,8 +16,16 @@ class BackupManager:
     def vaults(self):
         if not self._vaults:
             self._logger.debug(f"{self._session.profile_name:<20} vaults (not cached)")
-            response = self.client.list_backup_vaults()
-            self._vaults = response.get("BackupVaultList")
+            response = self.client.list_backup_vaults().get("BackupVaultList")
+
+            # Add Account to each item
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
+            ]
+
+            self._vaults = response
+
             return self._vaults
 
         self._logger.debug(f"{self._session.profile_name:<20} vaults (cached)")
@@ -27,8 +35,15 @@ class BackupManager:
     def plans(self):
         if not self._plans:
             self._logger.debug(f"{self._session.profile_name:<20} plans (not cached)")
-            response = self.client.list_backup_plans()
-            self._plans = response.get("BackupPlansList")
+            response = self.client.list_backup_plans().get("BackupPlansList")
+
+            # Add Account to each item
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
+            ]
+
+            self._plans = response
             return self._plans
 
         self._logger.debug(f"{self._session.profile_name:<20} plans (cached)")
@@ -38,8 +53,16 @@ class BackupManager:
     def jobs(self):
         if not self._jobs:
             self._logger.debug(f"{self._session.profile_name:<20} jobs (not cached)")
-            response = self.client.list_backup_jobs()
-            self._jobs = response.get("BackupJobs")
+            response = self.client.list_backup_jobs().get("BackupJobs")
+
+            # Add Account to each item
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
+            ]
+
+            self._jobs = response
+
             return self._jobs
 
         self._logger.debug(f"{self._session.profile_name:<20} jobs (cached)")

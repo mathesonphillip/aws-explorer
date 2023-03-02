@@ -18,6 +18,11 @@ class ConfigManager:
         if not self._rules:
             self._logger.debug(f"{self._session.profile_name:<20} rules (!cached)")
             response = self.config.describe_config_rules().get("ConfigRules")
+
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
+            ]
             self._rules = response
         self._logger.debug(f"{self._session.profile_name:<20} rules (cached)")
         return self._rules

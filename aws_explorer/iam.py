@@ -20,52 +20,63 @@ class IAMManager:
     def users(self):
         """This property is used to get a list of IAM users."""
         if not self._users:
-            self._logger.debug(f"{self._session.profile_name:<20} users (!cached)")
             response = self.iam.list_users().get("Users")
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
+            ]
             self._users = response
 
-        self._logger.debug(f"{self._session.profile_name:<20} users (cached)")
         return self._users
 
     @property
     def groups(self):
         """This property is used to get a list of IAM groups."""
         if not self._groups:
-            self._logger.debug(f"{self._session.profile_name:<20} groups (!cached)")
             response = self.iam.list_groups().get("Groups")
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
+            ]
             self._groups = response
-        self._logger.debug(f"{self._session.profile_name:<20} groups (cached)")
         return self._groups
 
     @property
     def roles(self):
         """This property is used to get a list of IAM roles."""
         if not self._roles:
-            self._logger.debug(f"{self._session.profile_name:<20} roles (!cached)")
             response = self.iam.list_roles().get("Roles")
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
+            ]
             self._roles = response
-        self._logger.debug(f"{self._session.profile_name:<20} roles (cached)")
         return self._roles
 
     @property
     def policies(self):
         """This property is used to get a list of IAM policies."""
         if not self._policies:
-            self._logger.debug(f"{self._session.profile_name:<20} policies (!cached)")
             response = self.iam.list_policies(Scope="Local").get("Policies")
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
+            ]
             self._policies = response
-        self._logger.debug(f"{self._session.profile_name:<20} policies (cached)")
         return self._policies
 
     @property
     def alias(self):
         """This property is used to get the alias of the account."""
         if not self._alias:
-            self._logger.debug(f"{self._session.profile_name:<20} alias (!cached)")
             response = self.iam.list_account_aliases().get("AccountAliases")
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
+            ]
+
             if response:
                 self._alias = response[0]
-        self._logger.debug(f"{self._session.profile_name:<20} alias (cached)")
         return self._alias
 
     def to_dict(self, filtered=True):

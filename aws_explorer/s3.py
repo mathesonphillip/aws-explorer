@@ -33,8 +33,11 @@ class S3Manager:
                         bucket["Encryption"] = None
                     else:
                         raise error
-
+            _ = [
+                item.update({"Account": self._session.profile_name}) for item in buckets
+            ]
             self._buckets = buckets
+
         return self._buckets
 
     def to_dict(self):

@@ -22,6 +22,11 @@ class DynamoDBManager:
                     self.client.describe_table(TableName=table_name).get("Table")
                 )
 
+            # Add Account to each item
+            _ = [
+                item.update({"Account": self._session.profile_name}) for item in _tables
+            ]
+
             self._tables = _tables
             return self._tables
 

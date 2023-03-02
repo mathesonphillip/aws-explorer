@@ -14,27 +14,25 @@ class SSMManager:
     @property
     def parameters(self):
         if not self._parameters:
-            self._logger.debug(
-                f"{self._session.profile_name:<20} parameters (not cached)"
-            )
-            response = self.client.describe_parameters()
-            self._parameters = response.get("Parameters")
-            return self._parameters
-
-        self._logger.debug(f"{self._session.profile_name:<20} parameters (cached)")
+            response = self.client.describe_parameters().get("Parameters")
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
+            ]
+            self._parameters = response
         return self._parameters
 
     @property
     def instances(self):
         if not self._instances:
-            self._logger.debug(
-                f"{self._session.profile_name:<20} instances (not cached)"
+            response = self.client.describe_instance_information().get(
+                "InstanceInformationList"
             )
-            response = self.client.describe_instance_information()
-            self._instances = response.get("InstanceInformationList")
-            return self._instances
-
-        self._logger.debug(f"{self._session.profile_name:<20} instances (cached)")
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
+            ]
+            self._instances = response
         return self._instances
 
     def to_dict(self):

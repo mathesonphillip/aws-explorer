@@ -15,8 +15,13 @@ class CloudWatchManager:
     def alarms(self):
         if not self._alarms:
             self._logger.debug(f"{self._session.profile_name:<20} alarms (not cached)")
-            response = self.client.describe_alarms()
-            self._alarms = response.get("MetricAlarms")
+            response = self.client.describe_alarms().get("MetricAlarms")
+
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
+            ]
+            self._alarms = response
             return self._alarms
         self._logger.debug(f"{self._session.profile_name:<20} alarms (cached)")
         return self._alarms
@@ -25,8 +30,13 @@ class CloudWatchManager:
     def metrics(self):
         if not self._metrics:
             self._logger.debug(f"{self._session.profile_name:<20} metrics (not cached)")
-            response = self.client.list_metrics()
-            self._metrics = response.get("Metrics")
+            response = self.client.list_metrics().get("Metrics")
+
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
+            ]
+            self._metrics = response
             return self._metrics
         self._logger.debug(f"{self._session.profile_name:<20} metrics (cached)")
         return self._metrics

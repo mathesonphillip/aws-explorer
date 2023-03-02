@@ -15,42 +15,37 @@ class ECSManager:
     @property
     def clusters(self):
         if not self._clusters:
-            self._logger.debug(
-                f"{self._session.profile_name:<20} clusters (not cached)"
-            )
-            response = self.client.list_clusters()
-            self._clusters = response.get("clusterArns")
-            return self._clusters
+            response = self.client.list_clusters().get("clusterArns")
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
+            ]
+            self._clusters = response
 
-        self._logger.debug(f"{self._session.profile_name:<20} clusters (cached)")
         return self._clusters
 
     @property
     def services(self):
         if not self._services:
-            self._logger.debug(
-                f"{self._session.profile_name:<20} services (not cached)"
-            )
-            response = self.client.list_services()
-            self._services = response.get("serviceArns")
-            return self._services
+            response = self.client.list_services().get("serviceArns")
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
+            ]
+            self._services = response
 
-        self._logger.debug(f"{self._session.profile_name:<20} services (cached)")
         return self._services
 
     @property
     def task_definitions(self):
         if not self._task_definitions:
-            self._logger.debug(
-                f"{self._session.profile_name:<20} task_definitions (not cached)"
-            )
-            response = self.client.list_task_definitions()
-            self._task_definitions = response.get("taskDefinitionArns")
-            return self._task_definitions
+            response = self.client.list_task_definitions().get("taskDefinitionArns")
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
+            ]
+            self._task_definitions = response
 
-        self._logger.debug(
-            f"{self._session.profile_name:<20} task_definitions (cached)"
-        )
         return self._task_definitions
 
     def to_dict(self):

@@ -15,8 +15,16 @@ class CloudFormationManager:
     def stacks(self):
         if not self._stacks:
             self._logger.debug(f"{self._session.profile_name:<20} stacks (not cached)")
-            response = self.client.list_stacks()
-            self._stacks = response.get("StackSummaries")
+            response = self.client.list_stacks().get("StackSummaries")
+
+            # Add Account to each item
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
+            ]
+
+            self._stacks = response
+
             return self._stacks
 
         self._logger.debug(f"{self._session.profile_name:<20} stacks (cached)")
@@ -40,6 +48,9 @@ class CloudFormationManager:
                 ]
                 result.extend(resources)
 
+            _ = [
+                item.update({"Account": self._session.profile_name}) for item in result
+            ]
             self._stack_resources = result
 
         self._logger.debug(f"{self._session.profile_name:<20} stack_resources (cached)")

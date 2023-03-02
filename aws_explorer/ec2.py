@@ -27,158 +27,178 @@ class EC2Manager:
     def instances(self):
         """This property is used to get a list of EC2 instances."""
         if not self._instances:
-            self._logger.debug(
-                f"{self._session.profile_name:<20} instances (not cached)"
-            )
             result = []
             instances = self.ec2.describe_instances()["Reservations"]
             for instance in instances:
                 instance = instance.get("Instances")
                 result.append(instance[0])
-            self._instances = result
-            return self._instances
 
-        self._logger.debug(f"{self._session.profile_name:<20} instances (cached)")
+            _ = [
+                item.update({"Account": self._session.profile_name}) for item in result
+            ]
+
+            self._instances = result
+
         return self._instances
 
     @property
     def security_groups(self):
         """This property is used to get a list of security groups."""
         if not self._security_groups:
-            self._logger.debug(
-                f"{self._session.profile_name:<20} security_groups (not cached)"
-            )
-            self._security_groups = self.ec2.describe_security_groups()[
-                "SecurityGroups"
+            response = self.ec2.describe_security_groups().get("SecurityGroups")
+
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
             ]
 
-        self._logger.debug(f"{self._session.profile_name:<20} security_groups (cached)")
+            self._security_groups = response
+
         return self._security_groups
 
     @property
     def security_group_rules(self):
         """This property is used to get a list of security group rules."""
         if not self._security_group_rules:
-            self._logger.debug(
-                f"{self._session.profile_name:<20} security_group_rules (not cached)"
-            )
-            self._security_group_rules = self.ec2.describe_security_group_rules()[
+            response = self.ec2.describe_security_group_rules().get(
                 "SecurityGroupRules"
+            )
+
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
             ]
 
-        self._logger.debug(
-            f"{self._session.profile_name:<20} security_group_rules (cached)"
-        )
+            self._security_group_rules = response
+
         return self._security_group_rules
 
     @property
     def vpcs(self):
         """This property is used to get a list of VPCs."""
         if not self._vpcs:
-            self._logger.debug(f"{self._session.profile_name:<20} vpcs (not cached)")
-            self._vpcs = self.ec2.describe_vpcs()["Vpcs"]
+            response = self.ec2.describe_vpcs().get("Vpcs")
 
-        self._logger.debug(f"{self._session.profile_name:<20} vpcs (cached)")
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
+            ]
+
+            self._vpcs = response
+
         return self._vpcs
 
     @property
     def subnets(self):
         """This property is used to get a list of subnets."""
         if not self._subnets:
-            self._logger.debug(f"{self._session.profile_name:<20} subnets (not cached)")
             self._subnets = self.ec2.describe_subnets()["Subnets"]
 
-        self._logger.debug(f"{self._session.profile_name:<20} subnets (cached)")
         return self._subnets
 
     @property
     def internet_gateways(self):
         """This property is used to get a list of internet gateways."""
         if not self._internet_gateways:
-            self._logger.debug(
-                f"{self._session.profile_name:<20} internet_gateways (not cached)"
-            )
-            self._internet_gateways = self.ec2.describe_internet_gateways()[
-                "InternetGateways"
+            response = self.ec2.describe_internet_gateways().get("InternetGateways")
+
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
             ]
 
-        self._logger.debug(
-            f"{self._session.profile_name:<20} internet_gateways (cached)"
-        )
+            self._internet_gateways = response
+
         return self._internet_gateways
 
     @property
     def route_tables(self):
         """This property is used to get a list of route tables."""
         if not self._route_tables:
-            self._logger.debug(
-                f"{self._session.profile_name:<20} route_tables (not cached)"
-            )
-            self._route_tables = self.ec2.describe_route_tables()["RouteTables"]
+            response = self.ec2.describe_route_tables().get("RouteTables")
 
-        self._logger.debug(f"{self._session.profile_name:<20} route_tables (cached)")
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
+            ]
+
+            self._route_tables = response
+
         return self._route_tables
 
     @property
     def network_acls(self):
         """This property is used to get a list of network ACLs."""
         if not self._network_acls:
-            self._logger.debug(
-                f"{self._session.profile_name:<20} network_acls (not cached)"
-            )
-            self._network_acls = self.ec2.describe_network_acls()["NetworkAcls"]
+            response = self.ec2.describe_network_acls().get("NetworkAcls")
 
-        self._logger.debug(f"{self._session.profile_name:<20} network_acls (cached)")
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
+            ]
+
+            self._network_acls = response
+
         return self._network_acls
 
     @property
     def network_interfaces(self):
         """This property is used to get a list of network interfaces."""
         if not self._network_interfaces:
-            self._logger.debug(
-                f"{self._session.profile_name:<20} network_interfaces (not cached)"
-            )
-            self._network_interfaces = self.ec2.describe_network_interfaces()[
-                "NetworkInterfaces"
+            response = self.ec2.describe_network_interfaces().get("NetworkInterfaces")
+
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
             ]
 
-        self._logger.debug(
-            f"{self._session.profile_name:<20} network_interfaces (cached)"
-        )
+            self._network_interfaces = response
+
         return self._network_interfaces
 
     @property
     def volumes(self):
         """This property is used to get a list of volumes."""
         if not self._volumes:
-            self._logger.debug(f"{self._session.profile_name:<20} volumes (not cached)")
-            self._volumes = self.ec2.describe_volumes()["Volumes"]
+            response = self.ec2.describe_volumes().get("Volumes")
 
-        self._logger.debug(f"{self._session.profile_name:<20} volumes (cached)")
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
+            ]
+
+            self._volumes = response
+
         return self._volumes
 
     @property
     def snapshots(self):
         """This property is used to get a list of snapshots."""
         if not self._snapshots:
-            self._logger.debug(
-                f"{self._session.profile_name:<20} snapshots (not cached)"
-            )
-            self._snapshots = self.ec2.describe_snapshots(OwnerIds=["self"])[
-                "Snapshots"
+            response = self.ec2.describe_snapshots(OwnerIds=["self"]).get("Snapshots")
+
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
             ]
 
-        self._logger.debug(f"{self._session.profile_name:<20} snapshots (cached)")
+            self._snapshots = response
+
         return self._snapshots
 
     @property
     def images(self):
         """This property is used to get a list of images."""
         if not self._images:
-            self._logger.debug(f"{self._session.profile_name:<20} images (not cached)")
-            self._images = self.ec2.describe_images(Owners=["self"])["Images"]
+            response = self.ec2.describe_images(Owners=["self"]).get("Images")
 
-        self._logger.debug(f"{self._session.profile_name:<20} images (cached)")
+            _ = [
+                item.update({"Account": self._session.profile_name})
+                for item in response
+            ]
+
+            self._images = response
+
         return self._images
 
     def to_dict(self):

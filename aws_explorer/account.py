@@ -23,6 +23,7 @@ from .ecs import ECSManager
 from .iam import IAMManager
 from .lambda_manager import LambdaManager
 from .s3 import S3Manager
+from .ssm import SSMManager
 from .sts import STSManager
 from .utils import console, get_logger, remove_timezones_from_dict
 
@@ -67,6 +68,7 @@ class Account:
         self.cloudwatch_logs = CloudWatchLogsManager(self.session)
         self.cloudtrail = CloudTrailManager(self.session)
         self.config = ConfigManager(self.session)
+        self.ssm = SSMManager(self.session)
 
         # self.id = self.sts.identity.get("Account")
         # self.user_id = self.sts.identity.get("UserId")
@@ -89,6 +91,8 @@ class Account:
                 "CloudWatchLogs": self.cloudwatch_logs.to_dict(),
                 "CloudTrail": self.cloudtrail.to_dict(),
                 "Config": self.config.to_dict(),
+                "SSM": self.ssm.to_dict(),
+                # FIXME: ECS is not working
                 # "ECS": self.ecs.to_dict(),
             }
 
@@ -104,6 +108,7 @@ class Account:
             "CloudWatchLogs": self.cloudwatch_logs.to_dict(),
             "CloudTrail": self.cloudtrail.to_dict(),
             "Config": self.config.to_dict(),
+            "SSM": self.ssm.to_dict(),
             # "ECS": self.ecs.to_dict(),
         }
 
