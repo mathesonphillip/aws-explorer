@@ -9,6 +9,7 @@ from datetime import datetime
 import boto3
 import pandas as pd
 import yaml
+from deepmerge import always_merger
 
 from .backup import BackupManager
 from .cloudformation import CloudFormationManager
@@ -183,3 +184,62 @@ class Account:
         #     return f"Account({self.id})"
 
         return "Account()"
+
+
+class Accounts:
+    """This class is used to manage a collection of AWS accounts."""
+
+    _logger = get_logger(__name__)
+
+    def __init__(self, accounts):
+        self.accounts = accounts
+
+    # ---------------------------------------------------------------------------- #
+
+    def export(self, export_prefix="accounts", export_path="."):
+        """This method is used to export the accounts to an excel file."""
+
+        def get_filename(prefix):
+            """This function is used to get the filename."""
+            timestamp = datetime.now().strftime("%Y%m%d")
+            return f"{export_path}/{prefix}_aws_inventory_{timestamp}.xlsx"
+
+        data_dict = {}
+
+        for account in self.accounts:
+            # Combine the data from each account into a single dictionary
+            account_data = remove_timezones_from_dict(account.to_dict())
+            data_dict = always_merger.merge(data_dict, account_data)
+
+        # pylint: disable=abstract-class-instantiated
+        with pd.ExcelWriter(path=get_filename(export_prefix)) as writer:
+            # iterate over the top-level keys in the dictionary
+            for service_key in data_dict:
+                for key, data in data_dict[service_key].items():  # type: ignore
+                    sheet_name = f"{service_key}.{key}"
+                    df = pd.DataFrame(data)
+                    df.to_excel(
+                        writer,
+                        sheet_name=sheet_name,
+                        startrow=1,
+                        header=False,
+                        index=False,
+                    )
+
+                    column_settings = [{"header": column} for column in df.columns]
+
+                    # Add the Excel table structure. Pandas will add the data.
+                    worksheet = writer.sheets[sheet_name]
+                    worksheet.add_table(
+                        0,
+                        0,
+                        len(df),
+                        len(df.columns) - 1,
+                        {"name": sheet_name, "columns": column_settings},
+                    )
+
+                    try:
+                        worksheet.autofit()
+                    except TypeError:
+                        # Can't autofit a worksheet with no data
+                        pass
