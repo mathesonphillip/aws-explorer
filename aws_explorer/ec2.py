@@ -1,12 +1,15 @@
-import logging
+from .utils import get_logger
 
 
 class EC2Manager:
     """This class is used to manage EC2 resources."""
 
+    _logger = get_logger(__name__)
+
     def __init__(self, session):
-        self.logger = logging.getLogger(__name__)
-        self.ec2 = session.client("ec2")
+        self._logger.debug(f"{session.profile_name:<20} ec2.__init__()")
+        self._session = session
+        self.ec2 = self._session.client("ec2")
         self._instances = list
 
     @property

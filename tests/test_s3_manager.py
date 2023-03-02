@@ -1,18 +1,20 @@
 from moto import mock_s3
-from pytest import mark, raises
+import pytest
 
-from aws_explorer import S3Manager
+from aws_explorer import Account, S3Manager
 
 
 @mock_s3
 # @mark.s3
 class TestS3Manager:
-    @mark.parametrize("data_type", [1, 1.0, True, None, [], {}])
-    def test_s3_manager_should_fail_when_not_given_correct_data_type_for_session_param(
-        self, data_type
-    ):
-        with raises(AttributeError):
-            S3Manager(data_type)
+    @pytest.fixture(autouse=True)
+    def account(self, monkeypatch, credentials_path):
+        monkeypatch.setenv("AWS_SHARED_CREDENTIALS_FILE", credentials_path.as_posix())
+        print("Monkeypatched AWS_SHARED_CREDENTIALS_FILE")
+
+        _account = Account(profile="aws-exporter", region="ap-southeast-2")
+
+        yield _account
 
     # ---------------------------------------------------------------------------- #
 

@@ -1,12 +1,14 @@
-import logging
+from .utils import get_logger
 
 
 class CloudFormationManager:
-    def __init__(self, session):
-        self.logger = logging.getLogger(__name__)
+    _logger = get_logger(__name__)
 
-        self.session = session
-        self.client = self.session.client("cloudformation")
+    def __init__(self, session):
+        self._logger.debug(f"{session.profile_name:<20} cloudformation.__init__()")
+
+        self._session = session
+        self.client = self._session.client("cloudformation")
 
         self._stacks = None
 

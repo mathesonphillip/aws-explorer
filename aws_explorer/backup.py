@@ -1,11 +1,13 @@
-import logging
+from .utils import get_logger
 
 
 class BackupManager:
+    _logger = get_logger(__name__)
+
     def __init__(self, session):
-        self.logger = logging.getLogger(__name__)
-        self.session = session
-        self.client = self.session.client("backup")
+        self._logger.debug(f"{session.profile_name:<20} backup.__init__()")
+        self._session = session
+        self.client = self._session.client("backup")
         self.vaults = None
         self.plans = None
         self.jobs = None

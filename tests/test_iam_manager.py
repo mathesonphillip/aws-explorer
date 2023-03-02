@@ -1,19 +1,28 @@
 from moto import mock_iam
-from pytest import mark, raises
+import pytest
 
-from aws_explorer import IAMManager
+from aws_explorer import Account, IAMManager
 
 
 @mock_iam
 # @mark.iam
 class TestIAMManager:
+    @pytest.fixture(autouse=True)
+    def account(self, monkeypatch, credentials_path):
+        monkeypatch.setenv("AWS_SHARED_CREDENTIALS_FILE", credentials_path.as_posix())
+        print("Monkeypatched AWS_SHARED_CREDENTIALS_FILE")
+
+        _account = Account(profile="aws-exporter", region="ap-southeast-2")
+
+        yield _account
+
     # --------------------------------------------------------------------------- #
 
-    @mark.parametrize("data_type", [1, 1.0, True, None, "Session", [], {}])
+    @pytest.mark.parametrize("data_type", [1, 1.0, True, None, "Session", [], {}])
     def test_iam_manager_should_fail_when_not_given_correct_data_type_for_session_param(
         self, data_type
     ):
-        with raises(AttributeError):
+        with pytest.raises(AttributeError):
             IAMManager(data_type)
 
     # ---------------------------------------------------------------------------- #
@@ -24,7 +33,7 @@ class TestIAMManager:
     # ---------------------------------------------------------------------------- #
 
     def test_iam_manager_session_is_not_none(self, account):
-        assert account.iam.session is not None
+        assert account.iam._session is not None
 
     # ---------------------------------------------------------------------------- #
 

@@ -1,11 +1,20 @@
 import pytest
 from moto import mock_sts
 
-from aws_explorer import STSManager
+from aws_explorer import Account, STSManager
 
 
 @mock_sts
 class TestSTSManager:
+    @pytest.fixture(autouse=True)
+    def account(self, monkeypatch, credentials_path):
+        monkeypatch.setenv("AWS_SHARED_CREDENTIALS_FILE", credentials_path.as_posix())
+        print("Monkeypatched AWS_SHARED_CREDENTIALS_FILE")
+
+        _account = Account(profile="aws-exporter", region="ap-southeast-2")
+
+        yield _account
+
     # --------------------------------------------------------------------------- #
 
     @pytest.mark.parametrize("data_type", [1, 1.0, True, None, [], {}])

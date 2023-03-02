@@ -74,12 +74,12 @@ is_python() {
     # Run black on the src directory
     print_header "black"
     python -m black --exclude __pycache__ "$WATCH_PATH/aws_explorer"
-    python -m black --exclude __pycache__ "$WATCH_PATH/tests"
+    # python -m black --exclude __pycache__ "$WATCH_PATH/tests"
 
     # Run isort on the src directory
     print_header "isort"
     python -m isort --profile black "$WATCH_PATH/aws_explorer"
-    python -m isort --profile black "$WATCH_PATH/tests"
+    # python -m isort --profile black "$WATCH_PATH/tests"
 
     # Run flake8 on the src directory
     print_header "flake8"
@@ -93,7 +93,7 @@ is_python() {
 
     # Run pytest on the src directory
     print_header "pytest"
-    pytest --showlocals --last-failed "$WATCH_PATH/tests"
+    pytest --verbose "$WATCH_PATH/tests"
 }
 
 git_status() {
@@ -156,27 +156,3 @@ inotifywait "${WATCH_ARGS[@]}" | while read DIRECTORY EVENT FILE; do
     git_status
 
 done
-
-# while true; do
-#     read DIRECTORY EVENT FILE <<<"$(inotifywait ${WATCH_ARGS[@]} || true)"
-#     # Checks if the file extension is of a type we want to process
-#     # print_header "$FILE"
-
-#     if [[ $FILE =~ \.py$ ]]; then
-#         is_python "$FILE"
-
-#     elif [[ $FILE =~ \.sh$ ]]; then
-#         printf "Workflow not yet implemented (%s, %s)\n" "$DIRECTORY" "$FILE"
-
-#     elif [[ $FILE =~ \.md$ ]]; then
-#         printf "Workflow not yet implemented (%s, %s)\n" "$DIRECTORY" "$FILE"
-
-#     else
-#         printf "Workflow not yet implemented (%s, %s)\n" "$DIRECTORY" "$FILE"
-
-#     fi
-
-#     # After processing the file, print out the git status
-#     git_status
-
-# done

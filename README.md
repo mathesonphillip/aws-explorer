@@ -2,16 +2,6 @@
 
 `aws-explorer` is a Python package that provides a convenient and consistent way to manage, query and report on AWS resources using the AWS SDK for Python (Boto3). The package is designed to be used in Jupyter Notebooks, and provides importable modules for each AWS service, with classes for each resource type, and methods to help manage, query and report on the resource type.
 
-
-## Project Structure
-
-<!-- ```bash{cmd=true hide=true run_on_save}
-
-# Output the tree structure of the project
-tree .. --gitignore --dirsfirst --noreport --sort=name -I "__pycache__"
-```
- -->
-
 ## Installation
 
 The `aws-explorer` package can be installed using pip:
