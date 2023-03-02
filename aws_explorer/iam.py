@@ -52,7 +52,7 @@ class IAMManager:
         """This property is used to get a list of IAM policies."""
         if not self._policies:
             self._logger.debug(f"{self._session.profile_name:<20} policies (!cached)")
-            response = self.iam.list_policies().get("Policies")
+            response = self.iam.list_policies(Scope="Local").get("Policies")
             self._policies = response
         self._logger.debug(f"{self._session.profile_name:<20} policies (cached)")
         return self._policies

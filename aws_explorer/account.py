@@ -12,6 +12,9 @@ import yaml
 
 from .backup import BackupManager
 from .cloudformation import CloudFormationManager
+from .cloudwatch import CloudWatchManager
+from .cloudwatch_logs import CloudWatchLogsManager
+from .dynamo_db import DynamoDBManager
 from .ec2 import EC2Manager
 from .ecs import ECSManager
 from .iam import IAMManager
@@ -39,18 +42,8 @@ class Account:
                 profile_name=self.profile, region_name=self.region
             )
 
-        # elif credentials:
-        #     self._logger.debug(f"{profile:<20} Creating account from credentials: {credentials}")
-        #     self.session = boto3.Session(**credentials)
-
-        # else:
-        #     self._logger.debug(f"{profile:<20} Creating account from default profile")
-        #     self.session = boto3.Session()
-
         # Initialise service managers
         self._initialise_services()
-
-        # Set account attributes
 
     # ---------------------------------------------------------------------------- #
 
@@ -62,10 +55,13 @@ class Account:
         self.iam = IAMManager(self.session)
         self.s3 = S3Manager(self.session)
         self.ec2 = EC2Manager(self.session)
-        self.cf = CloudFormationManager(self.session)
         self.backup = BackupManager(self.session)
         self.lamb = LambdaManager(self.session)
+        self.cf = CloudFormationManager(self.session)
+        self.dynamo_db = DynamoDBManager(self.session)
         self.ecs = ECSManager(self.session)
+        self.cloudwatch = CloudWatchManager(self.session)
+        self.cloudwatch_logs = CloudWatchLogsManager(self.session)
 
         # self.id = self.sts.identity.get("Account")
         # self.user_id = self.sts.identity.get("UserId")
@@ -79,6 +75,14 @@ class Account:
         data = {
             "IAM": self.iam.to_dict(),
             "S3": self.s3.to_dict(),
+            "EC2": self.ec2.to_dict(),
+            "Backup": self.backup.to_dict(),
+            "Lambda": self.lamb.to_dict(),
+            "CloudFormation": self.cf.to_dict(),
+            "DynamoDB": self.dynamo_db.to_dict(),
+            "CloudWatch": self.cloudwatch.to_dict(),
+            "CloudWatchLogs": self.cloudwatch_logs.to_dict(),
+            # "ECS": self.ecs.to_dict(),
         }
 
         return data
@@ -93,24 +97,24 @@ class Account:
 
     # ---------------------------------------------------------------------------- #
 
-    def export(self, ext):
+    def export(self, extension, export_path="."):
         """This method is used to export the account to a JSON file."""
         self._logger.debug(f"{self.profile:<20} export()")
 
         def get_filename(ext):
             """This function is used to get the filename."""
             timestamp = datetime.now().strftime("%Y%m%d")
-            return f"{self.profile}_{timestamp}.{ext}"
+            return f"{export_path}/{self.profile}_{timestamp}.{ext}"
 
-        if ext == "json":
+        if extension == "json":
             with open(get_filename("json"), "w", encoding="utf8") as file:
                 file.write(self.to_json())
 
-        if ext == "yaml":
+        if extension == "yaml":
             with open(get_filename("yaml"), "w", encoding="utf8") as file:
                 yaml.dump(self.to_dict(), file)
 
-        if ext == "excel":
+        if extension == "excel":
             # Get the data as a dictionary
             data_dict = remove_timezones_from_dict(self.to_dict())
 

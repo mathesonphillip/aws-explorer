@@ -17,9 +17,24 @@ class S3Manager:
         """This property is used to get a list of S3 buckets."""
 
         if not self._buckets:
-            response = self.s3.list_buckets()["Buckets"]
-            # print(response)
-            self._buckets = response
+            buckets = self.s3.list_buckets()["Buckets"]
+            for bucket in buckets:
+                bucket["Location"] = self.s3.get_bucket_location(
+                    Bucket=bucket["Name"]
+                ).get("LocationConstraint")
+                if bucket["Location"] is None:
+                    bucket["Location"] = "us-east-1"
+                try:
+                    bucket["Encryption"] = self.s3.get_bucket_encryption(
+                        Bucket=bucket["Name"]
+                    ).get("ServerSideEncryptionConfiguration")
+                except self.s3.exceptions.ClientError as error:
+                    if error.response["Error"]["Code"] == "AccessDenied":
+                        bucket["Encryption"] = None
+                    else:
+                        raise error
+
+            self._buckets = buckets
         return self._buckets
 
     def to_dict(self):
