@@ -57,3 +57,23 @@ def remove_timezones_from_dict(data_dict):
         # If the value is a datetime with timezone information, convert it to a timezone-unaware datetime
         return data_dict.replace(tzinfo=None)
     return data_dict
+
+
+def filter_and_sort_dict_list(dict_list, order):
+    """
+    Sort a list of dictionaries by a custom order based on the keys.
+
+    Parameters:
+        list_of_dicts (list): The list of dictionaries to sort.
+        order (list): The list of keys in the desired order.
+
+    Returns:
+        list: A new list of dictionaries with the keys sorted in the custom order.
+    """
+    filtered_list = []
+
+    for item in dict_list:
+        sorted_dict = {key: item.get(key) for key in order}
+        filtered_list.append(sorted_dict)
+
+    return filtered_list

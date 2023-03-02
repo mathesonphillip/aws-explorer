@@ -22,32 +22,8 @@ class CloudTrailManager:
         self._logger.debug(f"{self._session.profile_name:<20} trails (cached)")
         return self._trails
 
-    @property
-    def trail_names(self):
-        """This property is used to get a list of CloudTrail trail names."""
-        return [trail.get("Name") for trail in self.trails]
-
-    def get_trail(self, trail_name):
-        """This method is used to get a CloudTrail trail."""
-        return self.cloudtrail.get_trail(Name=trail_name)
-
-    def get_trail_status(self, trail_name):
-        """This method is used to get the status of a CloudTrail trail."""
-        return self.cloudtrail.get_trail_status(Name=trail_name)
-
-    def get_trail_events(self, trail_name, start_time, end_time):
-        """This method is used to get events from a CloudTrail trail."""
-        return self.cloudtrail.lookup_events(
-            LookupAttributes=[
-                {"AttributeKey": "EventId", "AttributeValue": trail_name}
-            ],
-            StartTime=start_time,
-            EndTime=end_time,
-        )
-
     def to_dict(self):
         """This method is used to convert a CloudTrail manager to a dictionary."""
         return {
             "trails": self.trails,
-            "trail_names": self.trail_names,
         }

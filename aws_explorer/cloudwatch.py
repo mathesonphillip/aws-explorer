@@ -21,7 +21,17 @@ class CloudWatchManager:
         self._logger.debug(f"{self._session.profile_name:<20} alarms (cached)")
         return self._alarms
 
+    @property
+    def metrics(self):
+        if not self._metrics:
+            self._logger.debug(f"{self._session.profile_name:<20} metrics (not cached)")
+            response = self.client.list_metrics()
+            self._metrics = response.get("Metrics")
+            return self._metrics
+        self._logger.debug(f"{self._session.profile_name:<20} metrics (cached)")
+        return self._metrics
+
     def to_dict(self):
         """This method is used to convert the object to Dict."""
-        data = {"Alarms": self.alarms}
-        return data
+
+        return {"Alarms": self.alarms, "Metrics": self.metrics}

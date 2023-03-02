@@ -1,4 +1,4 @@
-from .utils import get_logger
+from .utils import filter_and_sort_dict_list, get_logger
 
 
 class IAMManager:
@@ -68,14 +68,52 @@ class IAMManager:
         self._logger.debug(f"{self._session.profile_name:<20} alias (cached)")
         return self._alias
 
-    def to_dict(self):
+    def to_dict(self, filtered=True):
         """This method is used to convert the object to Dict."""
         self._logger.debug(f"{self._session.profile_name:<20} to_dict()")
-        data = {
-            "Users": self.users,
-            "Groups": self.groups,
-            "Roles": self.roles,
-            "Policies": self.policies,
-        }
+        if not filtered:
+            return {
+                "Users": self.users,
+                "Groups": self.groups,
+                "Roles": self.roles,
+                "Policies": self.policies,
+            }
 
-        return data
+        return {
+            "Users": filter_and_sort_dict_list(
+                self.users,
+                [
+                    "UserName",
+                    "PasswordLastUsed",
+                    "CreateDate",
+                    "Arn",
+                ],
+            ),
+            "Groups": filter_and_sort_dict_list(
+                self.groups,
+                [
+                    "GroupName",
+                    "CreateDate",
+                    "Arn",
+                ],
+            ),
+            "Roles": filter_and_sort_dict_list(
+                self.roles,
+                [
+                    "RoleName",
+                    "Description",
+                    "CreateDate",
+                    "Arn",
+                ],
+            ),
+            "Policies": filter_and_sort_dict_list(
+                self.policies,
+                [
+                    "PolicyName",
+                    "AttachmentCount",
+                    "CreateDate",
+                    "UpdateDate",
+                    "Arn",
+                ],
+            ),
+        }

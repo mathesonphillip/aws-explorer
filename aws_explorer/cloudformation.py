@@ -45,6 +45,22 @@ class CloudFormationManager:
         self._logger.debug(f"{self._session.profile_name:<20} stack_resources (cached)")
         return self._stack_resources
 
+    def detect_drift(self):
+        """This method is used to detect drift in CloudFormation stacks."""
+
+        stack_drift_detection_ids = []
+        for stack in self.stacks:
+            if stack.get("StackStatus") == "DELETE_COMPLETE":
+                continue
+
+            stack_name = stack.get("StackName")
+            drift_id = self.client.detect_stack_drift(StackName=stack_name).get(
+                "StackDriftDetectionId"
+            )
+            stack_drift_detection_ids.append(drift_id)
+
+        return stack_drift_detection_ids
+
     def to_dict(self):
         """This method is used to convert the object to Dict."""
 
