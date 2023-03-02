@@ -12,8 +12,10 @@ import yaml
 
 from .backup import BackupManager
 from .cloudformation import CloudFormationManager
+from .cloudtrail import CloudTrailManager
 from .cloudwatch import CloudWatchManager
 from .cloudwatch_logs import CloudWatchLogsManager
+from .config import ConfigManager
 from .dynamo_db import DynamoDBManager
 from .ec2 import EC2Manager
 from .ecs import ECSManager
@@ -62,18 +64,35 @@ class Account:
         self.ecs = ECSManager(self.session)
         self.cloudwatch = CloudWatchManager(self.session)
         self.cloudwatch_logs = CloudWatchLogsManager(self.session)
+        self.cloudtrail = CloudTrailManager(self.session)
+        self.config = ConfigManager(self.session)
 
         # self.id = self.sts.identity.get("Account")
         # self.user_id = self.sts.identity.get("UserId")
 
     # ---------------------------------------------------------------------------- #
 
-    def to_dict(self):
+    def to_dict(self, filtered=True):
         """Return object as dict"""
         self._logger.debug(f"{self.profile:<20} to_dict()")
+        if not filtered:
+            return {
+                "IAM": self.iam.to_dict(),
+                "S3": self.s3.to_dict(),
+                "EC2": self.ec2.to_dict(),
+                "Backup": self.backup.to_dict(),
+                "Lambda": self.lamb.to_dict(),
+                "CloudFormation": self.cf.to_dict(),
+                "DynamoDB": self.dynamo_db.to_dict(),
+                "CloudWatch": self.cloudwatch.to_dict(),
+                "CloudWatchLogs": self.cloudwatch_logs.to_dict(),
+                "CloudTrail": self.cloudtrail.to_dict(),
+                "Config": self.config.to_dict(),
+                # "ECS": self.ecs.to_dict(),
+            }
 
-        data = {
-            "IAM": self.iam.to_dict(),
+        return {
+            "IAM": self.iam.to_dict(filtered=True),
             "S3": self.s3.to_dict(),
             "EC2": self.ec2.to_dict(),
             "Backup": self.backup.to_dict(),
@@ -82,10 +101,10 @@ class Account:
             "DynamoDB": self.dynamo_db.to_dict(),
             "CloudWatch": self.cloudwatch.to_dict(),
             "CloudWatchLogs": self.cloudwatch_logs.to_dict(),
+            "CloudTrail": self.cloudtrail.to_dict(),
+            "Config": self.config.to_dict(),
             # "ECS": self.ecs.to_dict(),
         }
-
-        return data
 
     # ---------------------------------------------------------------------------- #
 
@@ -149,6 +168,8 @@ class Account:
                             worksheet.autofit()
                         except TypeError as e:
                             self._logger.error(e)
+
+        console.print(f"[green]Exported {self.profile} to {export_path}[/green]")
 
     # ---------------------------------------------------------------------------- #
     def __repr__(self):
