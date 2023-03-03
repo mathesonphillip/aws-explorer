@@ -5,11 +5,12 @@
 
 import json
 from datetime import datetime
+from typing import Any, Callable, Dict, Iterator, List, Optional
 
 import boto3
 import pandas as pd
 import yaml
-from deepmerge import always_merger
+from deepmerge import always_merger  # type: ignore
 
 from .backup import BackupManager
 from .cloudformation import CloudFormationManager
@@ -26,28 +27,25 @@ from .rds import RDSManager
 from .s3 import S3Manager
 from .ssm import SSMManager
 from .sts import STSManager
-from .utils import remove_timezones_from_dict
+from .utils import remove_timezones_from_object
 
 
 class Account:
     """This class is used to manage AWS accounts."""
 
-    def __init__(self, profile=None, region=None):
-        if profile:
-            self.profile = profile
-            self.region = region
-            self.session = boto3.Session(
-                profile_name=self.profile, region_name=self.region
-            )
+    def __init__(self, profile: str, region: str) -> None:
+        if not profile or not region:
+            raise ValueError("profile and region are required")
 
-        # Initialise service managers
+        self.session: boto3.Session = boto3.Session(
+            profile_name=profile, region_name=region
+        )
         self._initialise_services()
 
     # ---------------------------------------------------------------------------- #
 
-    def _initialise_services(self):
+    def _initialise_services(self) -> None:
         """This method is used to initialise the service managers."""
-
         self.backup = BackupManager(self.session)
         self.cloudformation = CloudFormationManager(self.session)
         self.cloudtrail = CloudTrailManager(self.session)
@@ -66,140 +64,55 @@ class Account:
 
     # ---------------------------------------------------------------------------- #
 
-    def to_dict(self, filtered=True):
+    def to_dict(self, filtered: bool = True) -> Dict[str, object]:
         """Return object as dict"""
 
         return {
-            "Backup": self.backup.to_dict(filtered=filtered),
-            "CloudFormation": self.cloudformation.to_dict(filtered=filtered),
-            "CloudTrail": self.cloudtrail.to_dict(filtered=filtered),
-            "CloudWatch": self.cloudwatch.to_dict(filtered=filtered),
-            "CloudWatchLogs": self.cloudwatch_logs.to_dict(filtered=filtered),
-            "Config": self.config.to_dict(filtered=filtered),
+            # "SSM": self.ssm.to_dict(filtered=filtered),
+            # "EC2": self.ec2.to_dict(filtered=filtered),
+            # "IAM": self.iam.to_dict(filtered=filtered),
+            # "S3": self.s3.to_dict(filtered=filtered),
+            # "CloudWatchLogs": self.cloudwatch_logs.to_dict(filtered=filtered),
+            # "CloudWatch": self.cloudwatch.to_dict(filtered=filtered),
+            # "Backup": self.backup.to_dict(filtered=filtered),
+            # "CloudFormation": self.cloudformation.to_dict(filtered=filtered),
+            # "Config": self.config.to_dict(filtered=filtered),
             "DynamoDB": self.dynamo_db.to_dict(filtered=filtered),
-            "EC2": self.ec2.to_dict(filtered=filtered),
             # "ECS": self.ecs.to_dict(filtered=filtered),
-            "IAM": self.iam.to_dict(filtered=filtered),
             "Lambda": self.lamb.to_dict(filtered=filtered),
             "RDS": self.rds.to_dict(filtered=filtered),
-            "S3": self.s3.to_dict(filtered=filtered),
-            "SSM": self.ssm.to_dict(filtered=filtered),
+            "CloudTrail": self.cloudtrail.to_dict(filtered=filtered),
         }
 
     # ---------------------------------------------------------------------------- #
 
-    def to_json(self, indent=4):
+    def to_json(self, indent: int = 4) -> str:
         """Return object as JSON"""
-
         return json.dumps(self.to_dict(), default=str, indent=indent)
 
     # ---------------------------------------------------------------------------- #
+    def export_to_json(self, obj: Any, export_path: str) -> None:
+        with open(export_path, "w", encoding="utf8") as file:
+            file.write(json.dumps(obj))
 
-    def export(self, extension, export_path="."):
-        """This method is used to export the account to a JSON file."""
+    def export_to_yaml(self, obj: Any, export_path: str) -> None:
+        with open(export_path, "w", encoding="utf8") as file:
+            yaml.dump(obj, file)
 
-        def get_filename(ext):
-            """This function is used to get the filename."""
-            timestamp = datetime.now().strftime("%Y%m%d")
-            return f"{export_path}/{self.profile}_{timestamp}.{ext}"
+    def export_to_excel(self, obj: Any, export_path: str) -> None:
+        # Get the data as a dictionary
 
-        if extension == "json":
-            with open(get_filename("json"), "w", encoding="utf8") as file:
-                file.write(self.to_json())
-
-        if extension == "yaml":
-            with open(get_filename("yaml"), "w", encoding="utf8") as file:
-                yaml.dump(self.to_dict(), file)
-
-        if extension == "excel":
-            # Get the data as a dictionary
-            data_dict = remove_timezones_from_dict(self.to_dict())
-
-            # pylint: disable=abstract-class-instantiated
-            with pd.ExcelWriter(path=get_filename("xlsx")) as writer:
-                # iterate over the top-level keys in the dictionary
-                for service_key in data_dict:
-                    for key, data in data_dict[service_key].items():  # type: ignore
-                        sheet_name = f"{service_key}.{key}"
-                        df = pd.DataFrame(data)
-                        df.to_excel(
-                            writer,
-                            sheet_name=sheet_name,
-                            startrow=1,
-                            header=False,
-                            index=False,
-                        )
-
-                        column_settings = [{"header": column} for column in df.columns]
-
-                        # Add the Excel table structure. Pandas will add the data.
-                        worksheet = writer.sheets[sheet_name]
-                        worksheet.add_table(
-                            0,
-                            0,
-                            len(df),
-                            len(df.columns) - 1,
-                            {"name": sheet_name, "columns": column_settings},
-                        )
-
-                        try:
-                            worksheet.autofit()
-                        except TypeError as e:
-                            print(e)
-
-    # ---------------------------------------------------------------------------- #
-    def __repr__(self):
-        """Return object as string"""
-
-        if self.profile:
-            return f"Account({self.profile})"
-
-        # if self.id:
-        #     return f"Account({self.id})"
-
-        return "Account()"
-
-
-class Accounts:
-    """This class is used to manage a collection of AWS accounts."""
-
-    def __init__(self, accounts):
-        self.accounts = accounts
-
-    def __iter__(self):
-        self.index = 0
-        return self
-
-    def __next__(self):
-        if self.index < len(self.accounts):
-            result = self.accounts[self.index]
-            self.index += 1
-            return result
-        raise StopIteration
-
-    # ---------------------------------------------------------------------------- #
-
-    def export(self, export_prefix="accounts", export_path="."):
-        """This method is used to export the accounts to an excel file."""
-
-        def get_filename(prefix):
-            """This function is used to get the filename."""
-            timestamp = datetime.now().strftime("%Y%m%d")
-            return f"{export_path}/{prefix}_aws_inventory_{timestamp}.xlsx"
-
-        data_dict = {}
-
-        for account in self.accounts:
-            # Combine the data from each account into a single dictionary
-            account_data = remove_timezones_from_dict(account.to_dict())
-            data_dict = always_merger.merge(data_dict, account_data)
+        data_dict = remove_timezones_from_object(obj)
 
         # pylint: disable=abstract-class-instantiated
-        with pd.ExcelWriter(path=get_filename(export_prefix)) as writer:
+        with pd.ExcelWriter(path=export_path) as writer:
             # iterate over the top-level keys in the dictionary
-            for service_key in data_dict:
+            for service_key in data_dict:  # type: ignore
                 for key, data in data_dict[service_key].items():  # type: ignore
                     sheet_name = f"{service_key}.{key}"
+
+                    print(f"Writing {sheet_name} to Excel")
+
                     df = pd.DataFrame(data)
                     df.to_excel(
                         writer,
@@ -209,7 +122,9 @@ class Accounts:
                         index=False,
                     )
 
-                    column_settings = [{"header": column} for column in df.columns]
+                    column_settings: List[Dict[str, str]] = [
+                        {"header": column} for column in df.columns
+                    ]
 
                     # Add the Excel table structure. Pandas will add the data.
                     worksheet = writer.sheets[sheet_name]
@@ -222,11 +137,42 @@ class Accounts:
                     )
 
                     # Set the column width to the max length of the column header
-                    for column in df:
-                        column_length = max(
-                            df[column].astype(str).map(len).max(), len(column)
-                        )
-                        col_idx = df.columns.get_loc(column)
-                        writer.sheets[sheet_name].set_column(
-                            col_idx, col_idx, column_length
-                        )
+                    # for column in df:
+                    #     column_length = max(df[column].astype(str).map(len).max(), len(column))
+                    #     col_idx = df.columns.get_loc(column)
+                    #     writer.sheets[sheet_name].set_column(col_idx, col_idx, column_length)
+
+    def get_filename(self, extension: str) -> str:
+        """This function is used to get the filename."""
+        timestamp = datetime.now().strftime("%Y%m%d")
+        return f"{self.session.profile_name}_{timestamp}.{extension}"
+
+    def export(self, extension: str, export_path: str = ".") -> None:
+        """This method is used to export the account to a file."""
+        # Define a dictionary with file extensions and corresponding file writing functions
+        file_writers = {
+            "json": self.export_to_json,
+            "yaml": self.export_to_yaml,
+            "xlsx": self.export_to_excel,
+        }
+
+        # Get the file writing function corresponding to the file extension
+        file_writer: Optional[Callable[[Any, str], None]] = file_writers.get(extension)
+
+        if file_writer is None:
+            raise ValueError(f"Unsupported file extension: {extension}")
+
+        # Get the filename and full export path
+        filename = self.get_filename(extension)
+        full_export_path = f"{export_path}/{filename}"
+
+        # Call the file writing function with the object and export path
+        file_writer(self.to_dict(), full_export_path)
+
+    # ---------------------------------------------------------------------------- #
+    def __repr__(self) -> str:
+        """Return object as string"""
+        return f"Account({self.session.profile_name})"
+
+
+# ---------------------------------------------------------------------------- #

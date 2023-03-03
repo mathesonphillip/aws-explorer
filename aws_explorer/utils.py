@@ -1,6 +1,7 @@
 import logging
 import sys
 from datetime import datetime
+from typing import Dict, List
 
 
 def get_logger(name):
@@ -23,17 +24,18 @@ def get_logger(name):
     return logger
 
 
-def remove_timezones_from_dict(data_dict):
-    if isinstance(data_dict, dict):
+def remove_timezones_from_object(data_object):
+    if isinstance(data_object, dict):
         # If the value is a dictionary, recursively remove timezone from its values
-        return {k: remove_timezones_from_dict(v) for k, v in data_dict.items()}
-    if isinstance(data_dict, list):
+        return {k: remove_timezones_from_object(v) for k, v in data_object.items()}  # type: ignore
+
+    if isinstance(data_object, list):
         # If the value is a list, recursively remove timezone from its items
-        return [remove_timezones_from_dict(v) for v in data_dict]
-    if isinstance(data_dict, datetime):
+        return [remove_timezones_from_object(v) for v in data_object]  # type: ignore
+
+    if isinstance(data_object, datetime):
         # If the value is a datetime with timezone information, convert it to a timezone-unaware datetime
-        return data_dict.replace(tzinfo=None)
-    return data_dict
+        return data_object.replace(tzinfo=None)  # type: ignore
 
 
 def filter_and_sort_dict_list(dict_list, order):

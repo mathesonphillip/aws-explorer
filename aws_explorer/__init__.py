@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-from .account import Account, Accounts
+from .account import Account
+from .accounts import Accounts
 from .backup import BackupManager
 from .cloudformation import CloudFormationManager
 from .cloudtrail import CloudTrailManager

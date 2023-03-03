@@ -1,67 +1,37 @@
-from mypy_boto3_backup import BackupClient
+from typing import Dict, List
+
+import boto3
 
 from .utils import filter_and_sort_dict_list
 
 
 class BackupManager:
-    def __init__(self, session):
-        self._session = session
-        self.client: BackupClient = self._session.client("backup")
-        self._vaults = None
-        self._plans = None
-        self._jobs = None
+    def __init__(self, session: boto3.Session) -> None:
+        self.session = session
+        self.client = self.session.client("backup")
 
     @property
-    def vaults(self):
-        if not self._vaults:
-            response = self.client.list_backup_vaults().get("BackupVaultList")
-
-            # Add Account to each item
-            _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
-            ]
-
-            self._vaults = response
-
-            return self._vaults
-
-        return self._vaults
+    def vaults(self) -> List[object]:
+        result: List = []
+        for i in self.client.list_backup_vaults()["BackupVaultList"]:
+            result.append({"Account": self.session.profile_name, **i})
+        return result
 
     @property
-    def plans(self):
-        if not self._plans:
-            response = self.client.list_backup_plans().get("BackupPlansList")
-
-            # Add Account to each item
-            _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
-            ]
-
-            self._plans = response
-            return self._plans
-
-        return self._plans
+    def plans(self) -> List[object]:
+        result: List = []
+        for i in self.client.list_backup_plans()["BackupPlansList"]:
+            result.append({"Account": self.session.profile_name, **i})
+        return result
 
     @property
-    def jobs(self):
-        if not self._jobs:
-            response = self.client.list_backup_jobs().get("BackupJobs")
+    def jobs(self) -> List[object]:
+        result: List = []
+        for i in self.client.list_backup_jobs()["BackupJobs"]:
+            result.append({"Account": self.session.profile_name, **i})
+        return result
 
-            # Add Account to each item
-            _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
-            ]
-
-            self._jobs = response
-
-            return self._jobs
-
-        return self._jobs
-
-    def to_dict(self, filtered=True):
+    def to_dict(self, filtered: bool = True) -> Dict[str, List[object]]:
         """This method is used to convert the object to Dict."""
         if not filtered:
             return {
