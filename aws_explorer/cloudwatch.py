@@ -1,11 +1,8 @@
-from .utils import filter_and_sort_dict_list, get_logger
+from .utils import filter_and_sort_dict_list
 
 
 class CloudWatchManager:
-    _logger = get_logger(__name__)
-
     def __init__(self, session):
-        self._logger.debug(f"{session.profile_name:<20} cloudwatch.__init__()")
         self._session = session
         self.client = self._session.client("cloudwatch")
         self._alarms = None
@@ -15,7 +12,6 @@ class CloudWatchManager:
     @property
     def alarms(self):
         if not self._alarms:
-            self._logger.debug(f"{self._session.profile_name:<20} alarms (not cached)")
             response = self.client.describe_alarms().get("MetricAlarms")
 
             _ = [
@@ -24,13 +20,11 @@ class CloudWatchManager:
             ]
             self._alarms = response
             return self._alarms
-        self._logger.debug(f"{self._session.profile_name:<20} alarms (cached)")
         return self._alarms
 
     @property
     def metrics(self):
         if not self._metrics:
-            self._logger.debug(f"{self._session.profile_name:<20} metrics (not cached)")
             response = self.client.list_metrics().get("Metrics")
 
             _ = [
@@ -39,7 +33,6 @@ class CloudWatchManager:
             ]
             self._metrics = response
             return self._metrics
-        self._logger.debug(f"{self._session.profile_name:<20} metrics (cached)")
         return self._metrics
 
     @property

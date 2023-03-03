@@ -16,9 +16,9 @@ class IAMManager:
     @property
     def users(self):
         """This property is used to get a list of IAM users."""
-        users = self.iam.list_users().get("Users")
+        users = self.iam.list_users().get("Users", [])
 
-        mfa_devices = self.iam.list_mfa_devices().get("MFADevices", [])
+        # mfa_devices = self.iam.list_mfa_devices().get("MFADevices", [])
 
         for user in users:
             user["Account"] = self._session.profile_name
@@ -34,13 +34,13 @@ class IAMManager:
             user["AccessKeys"] = self.iam.list_access_keys(
                 UserName=user["UserName"]
             ).get("AccessKeyMetadata", [])
-            user["MFADevices"] = [
-                device
-                for device in mfa_devices
-                if device["UserName"] == user["UserName"]
-            ]
 
-        return self._users
+            # for device in mfa_devices:
+            #     if device["UserName"] == user["UserName"]:
+            #         user["MFADevices"] = device
+            #         break
+
+        return users
 
     @property
     def groups(self):

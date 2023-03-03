@@ -1,11 +1,8 @@
-from .utils import filter_and_sort_dict_list, get_logger
+from .utils import filter_and_sort_dict_list
 
 
 class DynamoDBManager:
-    _logger = get_logger(__name__)
-
     def __init__(self, session):
-        self._logger.debug(f"{session.profile_name:<20} dynamo_db.__init__()")
         self._session = session
         self.client = self._session.client("dynamodb")
         self._tables = None
@@ -13,7 +10,6 @@ class DynamoDBManager:
     @property
     def tables(self):
         if not self._tables:
-            self._logger.debug(f"{self._session.profile_name:<20} tables (not cached)")
             table_names = self.client.list_tables().get("TableNames")
 
             _tables = []
@@ -30,7 +26,6 @@ class DynamoDBManager:
             self._tables = _tables
             return self._tables
 
-        self._logger.debug(f"{self._session.profile_name:<20} tables (cached)")
         return self._tables
 
     def to_dict(self, filtered=True):

@@ -1,13 +1,10 @@
-from .utils import filter_and_sort_dict_list, get_logger
+from .utils import filter_and_sort_dict_list
 
 
 class ConfigManager:
     """This class is used to manage configuration files."""
 
-    _logger = get_logger(__name__)
-
     def __init__(self, session):
-        self._logger.debug(f"{session.profile_name:<20} config.__init__()")
         self._session = session
         self.config = self._session.client("config")
         self._rules = None
@@ -16,7 +13,6 @@ class ConfigManager:
     def rules(self):
         """This property is used to get a list of Config rules."""
         if not self._rules:
-            self._logger.debug(f"{self._session.profile_name:<20} rules (!cached)")
             response = self.config.describe_config_rules().get("ConfigRules")
 
             _ = [
@@ -24,7 +20,6 @@ class ConfigManager:
                 for item in response
             ]
             self._rules = response
-        self._logger.debug(f"{self._session.profile_name:<20} rules (cached)")
         return self._rules
 
     def to_dict(self, filtered=True):

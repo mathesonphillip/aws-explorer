@@ -1,13 +1,10 @@
-from .utils import filter_and_sort_dict_list, get_logger
+from .utils import filter_and_sort_dict_list
 
 
 class EC2Manager:
     """This class is used to manage EC2 resources."""
 
-    _logger = get_logger(__name__)
-
     def __init__(self, session):
-        self._logger.debug(f"{session.profile_name:<20} ec2.__init__()")
         self._session = session
         self.ec2 = self._session.client("ec2")
         self._instances = None
@@ -116,9 +113,7 @@ class EC2Manager:
                     vpc["VpcName"] = tag.get("Value")
                     break
 
-        self._vpcs = vpcs
-
-        return self._vpcs
+        return vpcs
 
     @property
     def subnets(self):
@@ -130,7 +125,7 @@ class EC2Manager:
             subnet["SubnetName"] = None
             subnet["VpcName"] = None
 
-            for tag in subnet.get("Tags"):
+            for tag in subnet.get("Tags", []):
                 if tag.get("Key") == "Name":
                     subnet["Name"] = tag.get("Value")
                     break
@@ -140,9 +135,7 @@ class EC2Manager:
                     subnet["VpcName"] = vpc.get("Name")
                     break
 
-        self._subnets = subnets
-
-        return self._subnets
+        return subnets
 
     @property
     def internet_gateways(self):

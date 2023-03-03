@@ -49,6 +49,9 @@ def filter_and_sort_dict_list(dict_list, order):
     """
     filtered_list = []
 
+    if dict_list is None:
+        return dict_list
+
     for item in dict_list:
         sorted_dict = {key: item.get(key) for key in order}
         filtered_list.append(sorted_dict)

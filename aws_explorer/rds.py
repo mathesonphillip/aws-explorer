@@ -1,13 +1,10 @@
 from mypy_boto3_rds import RDSClient
 
-from .utils import filter_and_sort_dict_list, get_logger
+from .utils import filter_and_sort_dict_list
 
 
 class RDSManager:
-    _logger = get_logger(__name__)
-
     def __init__(self, session):
-        self._logger.debug(f"{session.profile_name:<20} rds.__init__()")
         self._session = session
         self.client: RDSClient = self._session.client("rds")
         self._instances = None
@@ -16,9 +13,6 @@ class RDSManager:
     @property
     def instances(self):
         if not self._instances:
-            self._logger.debug(
-                f"{self._session.profile_name:<20} instances (not cached)"
-            )
             response = self.client.describe_db_instances().get("DBInstances")
 
             # Add Account to each item
@@ -31,15 +25,11 @@ class RDSManager:
 
             return self._instances
 
-        self._logger.debug(f"{self._session.profile_name:<20} instances (cached)")
         return self._instances
 
     @property
     def clusters(self):
         if not self._clusters:
-            self._logger.debug(
-                f"{self._session.profile_name:<20} clusters (not cached)"
-            )
             response = self.client.describe_db_clusters().get("DBClusters")
 
             # Add Account to each item
@@ -52,7 +42,6 @@ class RDSManager:
 
             return self._clusters
 
-        self._logger.debug(f"{self._session.profile_name:<20} clusters (cached)")
         return self._clusters
 
     def to_dict(self, filtered=True):

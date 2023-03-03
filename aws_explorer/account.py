@@ -26,21 +26,14 @@ from .rds import RDSManager
 from .s3 import S3Manager
 from .ssm import SSMManager
 from .sts import STSManager
-from .utils import get_logger, remove_timezones_from_dict
+from .utils import remove_timezones_from_dict
 
 
 class Account:
     """This class is used to manage AWS accounts."""
 
-    _logger = get_logger(__name__)
-
     def __init__(self, profile=None, region=None):
-        self._logger.info(f"{profile:<20} account.__init__()")
-
         if profile:
-            self._logger.debug(
-                f"{profile:<20} Creating account from profile: {profile}"
-            )
             self.profile = profile
             self.region = region
             self.session = boto3.Session(
@@ -54,7 +47,6 @@ class Account:
 
     def _initialise_services(self):
         """This method is used to initialise the service managers."""
-        self._logger.debug(f"{self.profile:<20} _initialise_services()")
 
         self.backup = BackupManager(self.session)
         self.cloudformation = CloudFormationManager(self.session)
@@ -98,7 +90,6 @@ class Account:
 
     def to_json(self, indent=4):
         """Return object as JSON"""
-        self._logger.debug(f"{self.profile:<20} to_json()")
 
         return json.dumps(self.to_dict(), default=str, indent=indent)
 
@@ -106,7 +97,6 @@ class Account:
 
     def export(self, extension, export_path="."):
         """This method is used to export the account to a JSON file."""
-        self._logger.debug(f"{self.profile:<20} export()")
 
         def get_filename(ext):
             """This function is used to get the filename."""
@@ -155,12 +145,11 @@ class Account:
                         try:
                             worksheet.autofit()
                         except TypeError as e:
-                            self._logger.error(e)
+                            print(e)
 
     # ---------------------------------------------------------------------------- #
     def __repr__(self):
         """Return object as string"""
-        self._logger.debug("__repr__")
 
         if self.profile:
             return f"Account({self.profile})"
@@ -173,8 +162,6 @@ class Account:
 
 class Accounts:
     """This class is used to manage a collection of AWS accounts."""
-
-    _logger = get_logger(__name__)
 
     def __init__(self, accounts):
         self.accounts = accounts
@@ -192,7 +179,6 @@ class Accounts:
 
     # ---------------------------------------------------------------------------- #
 
-    # TODO: EXPORT MIN WIDTH?
     def export(self, export_prefix="accounts", export_path="."):
         """This method is used to export the accounts to an excel file."""
 
@@ -235,8 +221,12 @@ class Accounts:
                         {"name": sheet_name, "columns": column_settings},
                     )
 
-                    try:
-                        worksheet.autofit()
-                    except TypeError:
-                        # Can't autofit a worksheet with no data
-                        pass
+                    # Set the column width to the max length of the column header
+                    for column in df:
+                        column_length = max(
+                            df[column].astype(str).map(len).max(), len(column)
+                        )
+                        col_idx = df.columns.get_loc(column)
+                        writer.sheets[sheet_name].set_column(
+                            col_idx, col_idx, column_length
+                        )
