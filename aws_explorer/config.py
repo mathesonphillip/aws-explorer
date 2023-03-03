@@ -1,4 +1,4 @@
-from .utils import get_logger
+from .utils import filter_and_sort_dict_list, get_logger
 
 
 class ConfigManager:
@@ -27,8 +27,28 @@ class ConfigManager:
         self._logger.debug(f"{self._session.profile_name:<20} rules (cached)")
         return self._rules
 
-    def to_dict(self):
-        """This method is used to convert a Config manager to a dictionary."""
+    def to_dict(self, filtered=True):
+        """This method is used to convert the object to Dict."""
+        if not filtered:
+            return {
+                "rules": self.rules,
+            }
         return {
-            "rules": self.rules,
+            "rules": filter_and_sort_dict_list(
+                self.rules,
+                [
+                    "Account",
+                    "ConfigRuleName",
+                    "Description",
+                    "ConfigRuleState",
+                    "InputParameters",
+                    "Scope",
+                    "Source",
+                    "Tags",
+                    "MaximumExecutionFrequency",
+                    "ConfigRuleId",
+                    "CreatedBy",
+                    "ConfigRuleArn",
+                ],
+            )
         }

@@ -1,4 +1,4 @@
-from .utils import get_logger
+from .utils import filter_and_sort_dict_list, get_logger
 
 
 class EC2Manager:
@@ -25,6 +25,7 @@ class EC2Manager:
 
     @property
     def instances(self):
+        # TODO: Add SSM Agent status
         """This property is used to get a list of EC2 instances."""
         if not self._instances:
             result = []
@@ -44,6 +45,7 @@ class EC2Manager:
     @property
     def security_groups(self):
         """This property is used to get a list of security groups."""
+        # TODO: ADD RULE NAMES TO SEC GROUP RULES
         if not self._security_groups:
             response = self.ec2.describe_security_groups().get("SecurityGroups")
 
@@ -75,6 +77,7 @@ class EC2Manager:
 
     @property
     def vpcs(self):
+        # TODO ADD VPC NAME
         """This property is used to get a list of VPCs."""
         if not self._vpcs:
             response = self.ec2.describe_vpcs().get("Vpcs")
@@ -89,6 +92,7 @@ class EC2Manager:
         return self._vpcs
 
     @property
+    # TODO ADD VPC NAME
     def subnets(self):
         """This property is used to get a list of subnets."""
         if not self._subnets:
@@ -201,22 +205,218 @@ class EC2Manager:
 
         return self._images
 
-    def to_dict(self):
+    def to_dict(self, filtered=True):
         """This method is used to convert the object to Dict."""
+        if not filtered:
+            return {
+                "Instances": self.instances,
+                "SecurityGroups": self.security_groups,
+                "SecurityGroupRules": self.security_group_rules,
+                "Vpcs": self.vpcs,
+                "Subnets": self.subnets,
+                "InternetGateways": self.internet_gateways,
+                "RouteTables": self.route_tables,
+                "NetworkAcls": self.network_acls,
+                "NetworkInterfaces": self.network_interfaces,
+                "Volumes": self.volumes,
+                "Snapshots": self.snapshots,
+                "Images": self.images,
+            }
 
-        data = {
-            "Instances": self.instances,
-            "SecurityGroups": self.security_groups,
-            "SecurityGroupRules": self.security_group_rules,
-            "Vpcs": self.vpcs,
-            "Subnets": self.subnets,
-            "InternetGateways": self.internet_gateways,
-            "RouteTables": self.route_tables,
-            "NetworkAcls": self.network_acls,
-            "NetworkInterfaces": self.network_interfaces,
-            "Volumes": self.volumes,
-            "Snapshots": self.snapshots,
-            "Images": self.images,
+        return {
+            "Instances": filter_and_sort_dict_list(
+                self.instances,
+                [
+                    "Account",
+                    "InstanceId",
+                    "State",
+                    "KeyName",
+                    "PrivateIpAddress",
+                    "PublicIpAddress",
+                    "VpcId",
+                    "SubnetId",
+                    "SecurityGroups",
+                    "Tags",
+                    "InstanceType",
+                    "ImageId",
+                    "LaunchTime",
+                ],
+            ),
+            "SecurityGroups": filter_and_sort_dict_list(
+                self.security_groups,
+                [
+                    "Account",
+                    "GroupId",
+                    "GroupName",
+                    "Description",
+                    "CidrIpv4",
+                    "CidrIpv6",
+                    "PrefixListId",
+                    "ReferencedGroupInfo",
+                    "Tags",
+                ],
+            ),
+            "SecurityGroupRules": filter_and_sort_dict_list(
+                self.security_group_rules,
+                [
+                    "Account",
+                    "SecurityGroupRuleId",
+                    "IsEgress",
+                    "IpProtocol",
+                    "FromPort",
+                    "ToPort",
+                    # "IpRange",
+                    # "PrefixListId",
+                    "SecurityGroupId",
+                    "Description",
+                ],
+            ),
+            "Vpcs": filter_and_sort_dict_list(
+                self.vpcs,
+                [
+                    "Account",
+                    "VpcId",
+                    # TODO ADD VPC NAME
+                    "CidrBlock",
+                    "IsDefault",
+                    "State",
+                    "CidrBlockAssociationSet",
+                    # "DhcpOptionsId",
+                    "InstanceTenancy",
+                    "Tags",
+                ],
+            ),
+            "Subnets": filter_and_sort_dict_list(
+                self.subnets,
+                [
+                    "Account",
+                    # ADD SUBNET NAME
+                    # ADD VPC NAME
+                    "VpcId",
+                    "AvailabilityZone",
+                    "SubnetId",
+                    "CidrBlock",
+                    "AvailableIpAddressCount",
+                    "MapPublicIpOnLaunch",
+                    "State",
+                    "DefaultForAz",
+                    "Tags",
+                ],
+            ),
+            "InternetGateways": filter_and_sort_dict_list(
+                self.internet_gateways,
+                [
+                    "Account",
+                    "InternetGatewayId",
+                    "Attachments",
+                    "Tags",
+                ],
+            ),
+            "RouteTables": filter_and_sort_dict_list(
+                self.route_tables,
+                [
+                    "Account",
+                    "VpcId",
+                    "RouteTableId",
+                    "Routes",
+                    "Associations",
+                    # "PropagatingVgws",
+                    "Tags",
+                ],
+            ),
+            "NetworkAcls": filter_and_sort_dict_list(
+                self.network_acls,
+                [
+                    "Account",
+                    "NetworkAclId",
+                    "VpcId",
+                    "IsDefault",
+                    "Entries",
+                    "Associations",
+                    "Tags",
+                ],
+            ),
+            "NetworkInterfaces": filter_and_sort_dict_list(
+                self.network_interfaces,
+                [
+                    # Add Account Name Lookup
+                    "Account",
+                    "NetworkInterfaceId",
+                    "PrivateIpAddress",
+                    "InterfaceType",
+                    "AvailabilityZone",
+                    "SubnetId",
+                    "Description",
+                    "VpcId",
+                    "Groups",
+                    "Ipv6Addresses",
+                    "MacAddress",
+                    "OwnerId",
+                    "PrivateIpAddresses",
+                    "Status",
+                    # "RequesterId",
+                    # "RequesterManaged",
+                    # "SourceDestCheck",
+                    "Attachment",
+                    "Tags",
+                ],
+            ),
+            "Volumes": filter_and_sort_dict_list(
+                self.volumes,
+                [
+                    "Account",
+                    "VolumeId",
+                    "AvailabilityZone",
+                    "VolumeType",
+                    "Encrypted",
+                    "Size",
+                    "State",
+                    "SnapshotId",
+                    "Tags",
+                    "CreateTime",
+                    "Attachments",
+                ],
+            ),
+            "Snapshots": filter_and_sort_dict_list(
+                self.snapshots,
+                [
+                    "Account",
+                    "SnapshotId",
+                    "State",
+                    "Progress",
+                    "VolumeId",
+                    "VolumeSize",
+                    "Description",
+                    "Encrypted",
+                    # "OwnerId",
+                    "StartTime",
+                    "Tags",
+                ],
+            ),
+            "Images": filter_and_sort_dict_list(
+                self.images,
+                [
+                    "Account",
+                    "Architecture",
+                    "Description",
+                    "ImageType",
+                    "EnaSupport",
+                    "Platform",
+                    "Public",
+                    "RootDeviceType",
+                    "CreationDate",
+                    "Hypervisor",
+                    "ImageId",
+                    "ImageLocation",
+                    "KernelId",
+                    "Name",
+                    "OwnerId",
+                    "RamdiskId",
+                    "RootDeviceName",
+                    "SriovNetSupport",
+                    "State",
+                    "Tags",
+                    "VirtualizationType",
+                ],
+            ),
         }
-
-        return data

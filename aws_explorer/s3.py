@@ -1,4 +1,4 @@
-from .utils import get_logger
+from .utils import filter_and_sort_dict_list, get_logger
 
 
 class S3Manager:
@@ -40,9 +40,19 @@ class S3Manager:
 
         return self._buckets
 
-    def to_dict(self):
-        """This method is used to convert the object to Dict."""
+    def to_dict(self, filtered=True):
+        if not filtered:
+            return {"Buckets": self.buckets}
 
-        data = {"Buckets": self.buckets}
-
-        return data
+        return {
+            "Buckets": filter_and_sort_dict_list(
+                self.buckets,
+                [
+                    "Account",
+                    "Name",
+                    "Location",
+                    "Encryption",
+                    "CreationDate",
+                ],
+            )
+        }

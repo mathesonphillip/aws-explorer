@@ -1,4 +1,6 @@
-from .utils import get_logger
+from mypy_boto3_backup import BackupClient
+
+from .utils import filter_and_sort_dict_list, get_logger
 
 
 class BackupManager:
@@ -7,7 +9,7 @@ class BackupManager:
     def __init__(self, session):
         self._logger.debug(f"{session.profile_name:<20} backup.__init__()")
         self._session = session
-        self.client = self._session.client("backup")
+        self.client: BackupClient = self._session.client("backup")
         self._vaults = None
         self._plans = None
         self._jobs = None
@@ -68,13 +70,56 @@ class BackupManager:
         self._logger.debug(f"{self._session.profile_name:<20} jobs (cached)")
         return self._jobs
 
-    def to_dict(self):
+        # TODO: ADD BACKUP PLAN RULES?
+
+    def to_dict(self, filtered=True):
         """This method is used to convert the object to Dict."""
+        if not filtered:
+            return {
+                "Vaults": self.vaults,
+                "Plans": self.plans,
+                "Jobs": self.jobs,
+            }
 
-        data = {
-            "Vaults": self.vaults,
-            "Plans": self.plans,
-            "Jobs": self.jobs,
+        return {
+            "Vaults": filter_and_sort_dict_list(
+                self.vaults,
+                [
+                    "Account",
+                    "BackupVaultName",
+                    "NumberOfRecoveryPoints",
+                    "BackupVaultArn",
+                    "EncryptionKeyArn",
+                ],
+            ),
+            "Plans": filter_and_sort_dict_list(
+                self.plans,
+                [
+                    "Account",
+                    "BackupPlanName",
+                    "LastExecutionDate",
+                    "CreationDate",
+                    "BackupPlanId",
+                    "BackupPlanArn",
+                ],
+            ),
+            "Jobs": filter_and_sort_dict_list(
+                self.jobs,
+                [
+                    "Account",
+                    "BackupVaultName",
+                    "State",
+                    "PercentDone",
+                    "StartBy",
+                    "CreationDate",
+                    "CompletionDate",
+                    "BackupSizeInBytes",
+                    "ResourceType",
+                    "CreatedBy",
+                    "ResourceArn",
+                    "BackupJobId",
+                    "BackupVaultArn",
+                    "RecoveryPointArn",
+                ],
+            ),
         }
-
-        return data

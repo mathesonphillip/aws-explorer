@@ -1,4 +1,4 @@
-from .utils import get_logger
+from .utils import filter_and_sort_dict_list, get_logger
 
 
 class CloudWatchManager:
@@ -41,7 +41,56 @@ class CloudWatchManager:
         self._logger.debug(f"{self._session.profile_name:<20} metrics (cached)")
         return self._metrics
 
-    def to_dict(self):
-        """This method is used to convert the object to Dict."""
+    def get_insights(
+        self,
+        start_time,
+        end_time,
+        metric_name,
+        namespace,
+        period,
+        statistic,
+        dimensions,
+    ):
+        # FIXME: Not implemented yet
+        pass
 
-        return {"Alarms": self.alarms, "Metrics": self.metrics}
+    def to_dict(self, filtered=True):
+        if not filtered:
+            return {
+                "Alarms": self.alarms,
+                "Metrics": self.metrics,
+            }
+
+        return {
+            "Alarms": filter_and_sort_dict_list(
+                self.alarms,
+                [
+                    "Account",
+                    "AlarmName",
+                    "AlarmDescription",
+                    "Namespace",
+                    "MetricName",
+                    "StateValue",
+                    "StateReason",
+                    "StateUpdatedTimestamp",
+                    # "AlarmArn",
+                    # "Statistic",
+                    # "Dimensions",
+                    # "Period",
+                    # "EvaluationPeriods",
+                    "Threshold",
+                    "ComparisonOperator",
+                    # "TreatMissingData",
+                    # "EvaluateLowSampleCountPercentile",
+                ],
+            ),
+            "Metrics": filter_and_sort_dict_list(
+                self.metrics,
+                [
+                    "Account",
+                    "Namespace",
+                    "MetricName",
+                    "Dimensions",
+                ],
+            ),
+        }

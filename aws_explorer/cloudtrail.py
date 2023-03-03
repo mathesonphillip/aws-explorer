@@ -1,4 +1,4 @@
-from .utils import get_logger
+from .utils import filter_and_sort_dict_list, get_logger
 
 
 class CloudTrailManager:
@@ -28,8 +28,27 @@ class CloudTrailManager:
         self._logger.debug(f"{self._session.profile_name:<20} trails (cached)")
         return self._trails
 
-    def to_dict(self):
-        """This method is used to convert a CloudTrail manager to a dictionary."""
+    def to_dict(self, filtered=True):
+        if not filtered:
+            return {
+                "trails": self.trails,
+            }
         return {
-            "trails": self.trails,
+            "trails": filter_and_sort_dict_list(
+                self.trails,
+                [
+                    "Account",
+                    "Name",
+                    "S3BucketName",
+                    "S3KeyPrefix",
+                    "IsOrganizationTrail",
+                    "HomeRegion",
+                    "IncludeGlobalServiceEvents",
+                    "IsMultiRegionTrail",
+                    # "TrailARN",
+                    # "LogFileValidationEnabled",
+                    # "CloudWatchLogsLogGroupArn",
+                    # "CloudWatchLogsRoleArn",
+                ],
+            )
         }

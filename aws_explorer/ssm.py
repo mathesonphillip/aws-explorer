@@ -1,4 +1,4 @@
-from .utils import get_logger
+from .utils import filter_and_sort_dict_list, get_logger
 
 
 class SSMManager:
@@ -24,20 +24,50 @@ class SSMManager:
 
     @property
     def instances(self):
-        if not self._instances:
-            response = self.client.describe_instance_information().get(
-                "InstanceInformationList"
-            )
-            _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
-            ]
-            self._instances = response
+        response = self.client.describe_instance_information().get(
+            "InstanceInformationList"
+        )
+        _ = [item.update({"Account": self._session.profile_name}) for item in response]
+        self._instances = response
         return self._instances
 
-    def to_dict(self):
-        """This method is used to convert the object to Dict."""
+    # WIP: This method is not working yet
+    def run_command(self, instance_ids, document_name, parameters, comment):
+        response = self.client.send_command(
+            InstanceIds=instance_ids,
+            DocumentName=document_name,
+            Parameters=parameters,
+            Comment=comment,
+        )
+        return response
 
-        data = {"Parameters": self.parameters, "Instances": self.instances}
+    def to_dict(self, filtered=True):
+        if not filtered:
+            return {"Parameters": self.parameters, "Instances": self.instances}
 
-        return data
+        return {
+            "Parameters": filter_and_sort_dict_list(
+                self.parameters, ["Account", "Name", "Type", "LastModifiedDate"]
+            ),
+            "Instances": filter_and_sort_dict_list(
+                self.instances,
+                [
+                    "Account",
+                    "ComputerName",
+                    "InstanceId",
+                    "PingStatus",
+                    "LastPingDateTime",
+                    "AgentVersion",
+                    "IsLatestVersion",
+                    "ResourceType",
+                    "IPAddress",
+                    "PlatformType",
+                    "PlatformName",
+                    "PlatformVersion",
+                    # "ActivationId",
+                    # "IamRole",
+                    # "LastSuccessfulPingDateTime",
+                    # "AssociationStatus",
+                ],
+            ),
+        }

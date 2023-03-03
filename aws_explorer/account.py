@@ -22,10 +22,11 @@ from .ec2 import EC2Manager
 from .ecs import ECSManager
 from .iam import IAMManager
 from .lambda_manager import LambdaManager
+from .rds import RDSManager
 from .s3 import S3Manager
 from .ssm import SSMManager
 from .sts import STSManager
-from .utils import console, get_logger, remove_timezones_from_dict
+from .utils import get_logger, remove_timezones_from_dict
 
 
 class Account:
@@ -55,61 +56,42 @@ class Account:
         """This method is used to initialise the service managers."""
         self._logger.debug(f"{self.profile:<20} _initialise_services()")
 
-        self.sts = STSManager(self.session)
-        self.iam = IAMManager(self.session)
-        self.s3 = S3Manager(self.session)
-        self.ec2 = EC2Manager(self.session)
         self.backup = BackupManager(self.session)
-        self.lamb = LambdaManager(self.session)
-        self.cf = CloudFormationManager(self.session)
-        self.dynamo_db = DynamoDBManager(self.session)
-        self.ecs = ECSManager(self.session)
+        self.cloudformation = CloudFormationManager(self.session)
+        self.cloudtrail = CloudTrailManager(self.session)
         self.cloudwatch = CloudWatchManager(self.session)
         self.cloudwatch_logs = CloudWatchLogsManager(self.session)
-        self.cloudtrail = CloudTrailManager(self.session)
         self.config = ConfigManager(self.session)
+        self.dynamo_db = DynamoDBManager(self.session)
+        self.ec2 = EC2Manager(self.session)
+        self.ecs = ECSManager(self.session)
+        self.iam = IAMManager(self.session)
+        self.lamb = LambdaManager(self.session)
+        self.rds = RDSManager(self.session)
+        self.s3 = S3Manager(self.session)
         self.ssm = SSMManager(self.session)
-
-        # self.id = self.sts.identity.get("Account")
-        # self.user_id = self.sts.identity.get("UserId")
+        self.sts = STSManager(self.session)
 
     # ---------------------------------------------------------------------------- #
 
     def to_dict(self, filtered=True):
         """Return object as dict"""
-        self._logger.debug(f"{self.profile:<20} to_dict()")
-        if not filtered:
-            return {
-                "IAM": self.iam.to_dict(),
-                "S3": self.s3.to_dict(),
-                "EC2": self.ec2.to_dict(),
-                "Backup": self.backup.to_dict(),
-                "Lambda": self.lamb.to_dict(),
-                "CloudFormation": self.cf.to_dict(),
-                "DynamoDB": self.dynamo_db.to_dict(),
-                "CloudWatch": self.cloudwatch.to_dict(),
-                "CloudWatchLogs": self.cloudwatch_logs.to_dict(),
-                "CloudTrail": self.cloudtrail.to_dict(),
-                "Config": self.config.to_dict(),
-                "SSM": self.ssm.to_dict(),
-                # FIXME: ECS is not working
-                # "ECS": self.ecs.to_dict(),
-            }
 
         return {
-            "IAM": self.iam.to_dict(filtered=True),
-            "S3": self.s3.to_dict(),
-            "EC2": self.ec2.to_dict(),
-            "Backup": self.backup.to_dict(),
-            "Lambda": self.lamb.to_dict(),
-            "CloudFormation": self.cf.to_dict(),
-            "DynamoDB": self.dynamo_db.to_dict(),
-            "CloudWatch": self.cloudwatch.to_dict(),
-            "CloudWatchLogs": self.cloudwatch_logs.to_dict(),
-            "CloudTrail": self.cloudtrail.to_dict(),
-            "Config": self.config.to_dict(),
-            "SSM": self.ssm.to_dict(),
-            # "ECS": self.ecs.to_dict(),
+            "Backup": self.backup.to_dict(filtered=filtered),
+            "CloudFormation": self.cloudformation.to_dict(filtered=filtered),
+            "CloudTrail": self.cloudtrail.to_dict(filtered=filtered),
+            "CloudWatch": self.cloudwatch.to_dict(filtered=filtered),
+            "CloudWatchLogs": self.cloudwatch_logs.to_dict(filtered=filtered),
+            "Config": self.config.to_dict(filtered=filtered),
+            "DynamoDB": self.dynamo_db.to_dict(filtered=filtered),
+            "EC2": self.ec2.to_dict(filtered=filtered),
+            # "ECS": self.ecs.to_dict(filtered=filtered),
+            "IAM": self.iam.to_dict(filtered=filtered),
+            "Lambda": self.lamb.to_dict(filtered=filtered),
+            "RDS": self.rds.to_dict(filtered=filtered),
+            "S3": self.s3.to_dict(filtered=filtered),
+            "SSM": self.ssm.to_dict(filtered=filtered),
         }
 
     # ---------------------------------------------------------------------------- #
@@ -175,8 +157,6 @@ class Account:
                         except TypeError as e:
                             self._logger.error(e)
 
-        console.print(f"[green]Exported {self.profile} to {export_path}[/green]")
-
     # ---------------------------------------------------------------------------- #
     def __repr__(self):
         """Return object as string"""
@@ -199,8 +179,20 @@ class Accounts:
     def __init__(self, accounts):
         self.accounts = accounts
 
+    def __iter__(self):
+        self.index = 0
+        return self
+
+    def __next__(self):
+        if self.index < len(self.accounts):
+            result = self.accounts[self.index]
+            self.index += 1
+            return result
+        raise StopIteration
+
     # ---------------------------------------------------------------------------- #
 
+    # TODO: EXPORT MIN WIDTH?
     def export(self, export_prefix="accounts", export_path="."):
         """This method is used to export the accounts to an excel file."""
 

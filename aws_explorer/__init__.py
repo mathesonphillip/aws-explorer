@@ -12,6 +12,7 @@ from .ec2 import EC2Manager
 from .ecs import ECSManager
 from .iam import IAMManager
 from .lambda_manager import LambdaManager
+from .rds import RDSManager
 from .s3 import S3Manager
 from .ssm import SSMManager
 from .sts import STSManager

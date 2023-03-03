@@ -1,4 +1,4 @@
-from .utils import get_logger
+from .utils import filter_and_sort_dict_list, get_logger
 
 
 class DynamoDBManager:
@@ -33,9 +33,34 @@ class DynamoDBManager:
         self._logger.debug(f"{self._session.profile_name:<20} tables (cached)")
         return self._tables
 
-    def to_dict(self):
+    def to_dict(self, filtered=True):
         """This method is used to convert the object to Dict."""
-
-        data = {"Tables": self.tables}
-
-        return data
+        if not filtered:
+            return {"tables": self.tables}
+        return {
+            "tables": filter_and_sort_dict_list(
+                self.tables,
+                [
+                    "Account",
+                    "TableName",
+                    "ItemCount",
+                    "TableSizeBytes",
+                    "TableStatus",
+                    "CreationDateTime",
+                    "AttributeDefinitions",
+                    "BillingModeSummary",
+                    "GlobalSecondaryIndexes",
+                    "KeySchema",
+                    "ProvisionedThroughput",
+                    "TableArn",
+                    "TableId",
+                    # "LatestStreamArn",
+                    # "LatestStreamLabel",
+                    # "LocalSecondaryIndexes",
+                    # "Replicas",
+                    # "RestoreSummary",
+                    # "SSEDescription",
+                    # "StreamSpecification",
+                ],
+            )
+        }

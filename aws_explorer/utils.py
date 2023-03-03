@@ -2,45 +2,22 @@ import logging
 import sys
 from datetime import datetime
 
-from compact_json import EolStyle, Formatter
-from rich.console import Console
-from rich.logging import RichHandler
-
-# ---------------------------------------------------------------------------- #
-
-formatter = Formatter()
-formatter.indent_spaces = 2
-formatter.max_inline_complexity = 10
-formatter.json_eol_style = EolStyle.LF
-
-# ---------------------------------------------------------------------------- #
-
-
-console = Console()
-
-# ---------------------------------------------------------------------------- #
-
 
 def get_logger(name):
     """This function is used to get a logger for a module."""
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
 
-    # TODO: Add file handler
-
-    console_handler = RichHandler(
-        show_time=False, rich_tracebacks=True, console=console
-    )
+    # create console handler and set level to DEBUG
+    console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(logging.DEBUG)
 
-    # create console handler and set level to DEBUG
-    # console_handler = logging.StreamHandler(sys.stdout)
-    # console_handler.setLevel(logging.DEBUG)
-
     # create formatter and add it to the handlers
-    # formatter = logging.Formatter("%(name)-20s %(levelname)-8s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+    formatter = logging.Formatter(
+        "%(name)-20s %(levelname)-8s %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+    )
 
-    # console_handler.setFormatter(formatter)
+    console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
 
     return logger

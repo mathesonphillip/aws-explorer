@@ -1,4 +1,4 @@
-from .utils import get_logger
+from .utils import filter_and_sort_dict_list, get_logger
 
 
 class LambdaManager:
@@ -22,9 +22,26 @@ class LambdaManager:
 
         return self._functions
 
-    def to_dict(self):
-        """This method is used to convert the object to Dict."""
+    def to_dict(self, filtered=True):
+        if not filtered:
+            return {"Functions": self.functions}
 
-        data = {"Functions": self.functions}
-
-        return data
+        return {
+            "Functions": filter_and_sort_dict_list(
+                self.functions,
+                [
+                    "Account",
+                    "FunctionName",
+                    "Description",
+                    "Runtime",
+                    "Timeout",
+                    "MemorySize",
+                    "CodeSize",
+                    "LastModified",
+                    "Environment",
+                    "Handler",
+                    "Role",
+                    "FunctionArn",
+                ],
+            )
+        }

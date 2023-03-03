@@ -31,7 +31,7 @@ class TestAccount:
         assert isinstance(account.iam, IAMManager)
         assert isinstance(account.s3, S3Manager)
         assert isinstance(account.sts, STSManager)
-        assert isinstance(account.cf, CloudFormationManager)
+        assert isinstance(account.cloudformation, CloudFormationManager)
         assert isinstance(account.backup, BackupManager)
         assert isinstance(account.lamb, LambdaManager)
         assert isinstance(account.ecs, ECSManager)

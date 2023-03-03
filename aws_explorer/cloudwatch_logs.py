@@ -1,4 +1,4 @@
-from .utils import get_logger
+from .utils import filter_and_sort_dict_list, get_logger
 
 
 class CloudWatchLogsManager:
@@ -29,9 +29,23 @@ class CloudWatchLogsManager:
         self._logger.debug(f"{self._session.profile_name:<20} log_groups (cached)")
         return self._log_groups
 
-    def to_dict(self):
-        """This method is used to convert the object to Dict."""
+    def to_dict(self, filtered=True):
+        if not filtered:
+            return {
+                "LogGroups": self.log_groups,
+            }
 
-        data = {"LogGroups": self.log_groups}
-
-        return data
+        return {
+            "LogGroups": filter_and_sort_dict_list(
+                self.log_groups,
+                [
+                    "Account",
+                    "logGroupName",
+                    "storedBytes",
+                    "retentionInDays",
+                    # "metricFilterCount",
+                    # "creationTime",
+                    # "arn",
+                ],
+            )
+        }

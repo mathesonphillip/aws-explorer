@@ -18,6 +18,7 @@ class IAMManager:
 
     @property
     def users(self):
+        # TODO: ADD MORE INFO TO USERS
         """This property is used to get a list of IAM users."""
         if not self._users:
             response = self.iam.list_users().get("Users")
@@ -31,6 +32,7 @@ class IAMManager:
 
     @property
     def groups(self):
+        # GROUP ATTACHMENTRS
         """This property is used to get a list of IAM groups."""
         if not self._groups:
             response = self.iam.list_groups().get("Groups")
@@ -43,6 +45,7 @@ class IAMManager:
 
     @property
     def roles(self):
+        # ROLE ATTACHMENTRS
         """This property is used to get a list of IAM roles."""
         if not self._roles:
             response = self.iam.list_roles().get("Roles")
@@ -54,6 +57,7 @@ class IAMManager:
         return self._roles
 
     @property
+    # POLICY ATTACHMENTRS
     def policies(self):
         """This property is used to get a list of IAM policies."""
         if not self._policies:
@@ -80,8 +84,6 @@ class IAMManager:
         return self._alias
 
     def to_dict(self, filtered=True):
-        """This method is used to convert the object to Dict."""
-        self._logger.debug(f"{self._session.profile_name:<20} to_dict()")
         if not filtered:
             return {
                 "Users": self.users,
@@ -94,37 +96,41 @@ class IAMManager:
             "Users": filter_and_sort_dict_list(
                 self.users,
                 [
+                    "Account",
                     "UserName",
                     "PasswordLastUsed",
-                    "CreateDate",
                     "Arn",
+                    "CreateDate",
                 ],
             ),
             "Groups": filter_and_sort_dict_list(
                 self.groups,
                 [
+                    "Account",
                     "GroupName",
-                    "CreateDate",
                     "Arn",
+                    "CreateDate",
                 ],
             ),
             "Roles": filter_and_sort_dict_list(
                 self.roles,
                 [
+                    "Account",
                     "RoleName",
                     "Description",
-                    "CreateDate",
                     "Arn",
+                    "CreateDate",
                 ],
             ),
             "Policies": filter_and_sort_dict_list(
                 self.policies,
                 [
+                    "Account",
                     "PolicyName",
                     "AttachmentCount",
+                    "Arn",
                     "CreateDate",
                     "UpdateDate",
-                    "Arn",
                 ],
             ),
         }

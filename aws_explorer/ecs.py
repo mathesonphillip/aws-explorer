@@ -1,4 +1,4 @@
-from .utils import get_logger
+from .utils import filter_and_sort_dict_list, get_logger
 
 
 class ECSManager:
@@ -14,47 +14,98 @@ class ECSManager:
 
     @property
     def clusters(self):
-        if not self._clusters:
-            response = self.client.list_clusters().get("clusterArns")
-            _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
-            ]
-            self._clusters = response
+        response = self.client.describe_clusters()
+        del response["ResponseMetadata"]
 
-        return self._clusters
+        # print(response)
+
+        # .get("clusters")
+
+        # _ = [
+        #     item.update({"Account": self._session.profile_name})
+        #     for item in response
+        # ]
+
+        # self._clusters = response
+
+        return response
 
     @property
     def services(self):
         if not self._services:
-            response = self.client.list_services().get("serviceArns")
-            _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
-            ]
+            service_arns = self.client.list_services().get("serviceArns")
+
+            response = self.client.describe_services(services=service_arns).get(
+                "serviceArns"
+            )
+
+            # _ = [
+            #     item.update({"Account": self._session.profile_name})
+            #     for item in response
+            # ]
             self._services = response
 
         return self._services
 
-    @property
-    def task_definitions(self):
-        if not self._task_definitions:
-            response = self.client.list_task_definitions().get("taskDefinitionArns")
-            _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
-            ]
-            self._task_definitions = response
+    # @property
+    # def task_definitions(self):
+    #     if not self._task_definitions:
+    #         response = self.client.list_task_definitions().get("taskDefinitionArns")
 
-        return self._task_definitions
+    #         # _ = [
+    #         #     item.update({"Account": self._session.profile_name})
+    #         #     for item in response
+    #         # ]
+    #         self._task_definitions = response
 
-    def to_dict(self):
-        """This method is used to convert the object to Dict."""
+    #     return self._task_definitions
 
-        data = {
+    def to_dict(self, filtered=True):
+        # if not filtered:
+        return {
             "Clusters": self.clusters,
-            "Services": self.services,
-            "TaskDefinitions": self.task_definitions,
+            # "Services": self.services,
+            # "TaskDefinitions": self.task_definitions,
         }
 
-        return data
+        return {
+            "Clusters": filter_and_sort_dict_list(
+                self.clusters,
+                [
+                    "createdAt",
+                    "registeredAt",
+                    "updatedAt",
+                ],
+            ),
+            # "Services": filter_and_sort_dict_list(
+            #     self.services,
+            #     [
+            #         "createdAt",
+            #         "deployments",
+            #         "events",
+            #         "loadBalancers",
+            #         "pendingCount",
+            #         "runningCount",
+            #         "updatedAt",
+            #     ],
+            # ),
+            "TaskDefinitions": filter_and_sort_dict_list(
+                self.task_definitions,
+                [
+                    "createdAt",
+                    "compatibilities",
+                    "containerDefinitions",
+                    "executionRoleArn",
+                    "family",
+                    "ipcMode",
+                    "networkMode",
+                    "pidMode",
+                    "placementConstraints",
+                    "proxyConfiguration",
+                    "requiresCompatibilities",
+                    "revision",
+                    "status",
+                    "taskRoleArn",
+                ],
+            ),
+        }

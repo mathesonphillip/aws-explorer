@@ -1,4 +1,4 @@
-from .utils import get_logger
+from .utils import filter_and_sort_dict_list, get_logger
 
 
 class CloudFormationManager:
@@ -15,15 +15,21 @@ class CloudFormationManager:
     def stacks(self):
         if not self._stacks:
             self._logger.debug(f"{self._session.profile_name:<20} stacks (not cached)")
-            response = self.client.list_stacks().get("StackSummaries")
+            # FILTER out DELETE_COMPLETE stacks
+
+            _stacks = []
+
+            for stack in self.client.list_stacks().get("StackSummaries"):
+                if stack.get("StackStatus") == "DELETE_COMPLETE":
+                    continue
+                _stacks.append(stack)
 
             # Add Account to each item
             _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
+                item.update({"Account": self._session.profile_name}) for item in _stacks
             ]
 
-            self._stacks = response
+            self._stacks = _stacks
 
             return self._stacks
 
@@ -56,6 +62,7 @@ class CloudFormationManager:
         self._logger.debug(f"{self._session.profile_name:<20} stack_resources (cached)")
         return self._stack_resources
 
+    # TODO: Add drift detection
     def detect_drift(self):
         """This method is used to detect drift in CloudFormation stacks."""
 
@@ -72,12 +79,41 @@ class CloudFormationManager:
 
         return stack_drift_detection_ids
 
-    def to_dict(self):
+    def to_dict(self, filtered=True):
         """This method is used to convert the object to Dict."""
+        if not filtered:
+            return {
+                "Stacks": self.stacks,
+                "StackResources": self.stack_resources,
+            }
 
-        data = {
-            "Stacks": self.stacks,
-            "StackResources": self.stack_resources,
+        return {
+            "Stacks": filter_and_sort_dict_list(
+                self.stacks,
+                [
+                    "Account",
+                    "StackName",
+                    "StackStatus",
+                    "CreationTime",
+                    "LastUpdatedTime",
+                    "DriftInformation",
+                    # "StackStatusReason",
+                    "TemplateDescription",
+                ],
+            ),
+            "StackResources": filter_and_sort_dict_list(
+                self.stack_resources,
+                [
+                    "Account",
+                    "StackName",
+                    "DriftInformation",
+                    "ResourceType",
+                    "ResourceStatus",
+                    "LogicalResourceId",
+                    "PhysicalResourceId",
+                    "LastUpdatedTimestamp",
+                    # "ResourceStatusReason",
+                    # "ModuleInfo",
+                ],
+            ),
         }
-
-        return data
