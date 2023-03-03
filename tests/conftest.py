@@ -1,7 +1,6 @@
 import os
 
-from boto3 import Session
-from pytest import fixture
+import pytest
 from aws_explorer import Account
 
 AWS_DEFAULT_REGION = "ap-southeast-2"
@@ -21,44 +20,34 @@ aws_secret_access_key = wJalrXUtnFEMI/K7MDENG/bPxRfiCAWSEXPORTER
 region                = {AWS_DEFAULT_REGION}
 """
 
-# ---------------------------------------------------------------------------- #
-
-
-@fixture(scope="session")
-def aws_credentials():
-    """Mocked AWS Credentials for moto."""
-    os.environ["AWS_ACCESS_KEY_ID"] = "testing"
-    os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
-    os.environ["AWS_SECURITY_TOKEN"] = "testing"
-    os.environ["AWS_SESSION_TOKEN"] = "testing"
-    os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
-
-
-@fixture(scope="session")
-def region():
-    return AWS_DEFAULT_REGION
-
-
-@fixture(scope="session")
-def access_key():
-    return AWS_ACCESS_KEY_ID
-
-
-@fixture(scope="session")
-def secret_key():
-    return AWS_SECRET_ACCESS_KEY
-
-
-@fixture(scope="session")
-def credentials_content():
-    return CREDENTIALS_CONTENT
-
 
 # ---------------------------------------------------------------------------- #
 # Fixture that creates a temporary credentials file and returns the path
-@fixture(scope="session")
+@pytest.fixture(scope="session")
 def credentials_path(tmp_path_factory):
     """Create a temporary credentials file and return the path."""
     path = tmp_path_factory.mktemp("data") / "credentials"
     path.write_text(CREDENTIALS_CONTENT)
     yield path
+
+
+@pytest.fixture(autouse=True)
+def account(monkeypatch, credentials_path):
+    """Mocked AWS Credentials for moto."""
+    # Ovewrite the environment variables with fail-safe values
+    os.environ["AWS_ACCESS_KEY_ID"] = "aws-exporter"
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "aws-exporter"
+    os.environ["AWS_SECURITY_TOKEN"] = "aws-exporter"
+    os.environ["AWS_SESSION_TOKEN"] = "aws-exporter"
+    os.environ["AWS_DEFAULT_REGION"] = "ap-southeast-2"
+
+    # Monkeypatch the environment variables for AWS_SHARED_CREDENTIALS_FILE for fail-safe
+    monkeypatch.setenv("AWS_SHARED_CREDENTIALS_FILE", credentials_path.as_posix())
+    print("Monkeypatched AWS_SHARED_CREDENTIALS_FILE")
+
+    # Monkeypatch envvar for MOTO_ACCOUNT_ID, so i know what im testing
+    monkeypatch.setenv("MOTO_ACCOUNT_ID", "111111111111")
+
+    _account = Account(profile="aws-exporter", region="ap-southeast-2")
+
+    yield _account

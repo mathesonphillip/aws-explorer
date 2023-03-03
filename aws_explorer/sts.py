@@ -9,7 +9,7 @@ class STSManager:
     def __init__(self, session):
         self._logger.debug(f"{session.profile_name:<20} sts.__init__()")
         self._session = session
-        self._client = self._session.client("sts")
+        self.client = self._session.client("sts")
         self._identity = None
 
     @property
@@ -19,7 +19,7 @@ class STSManager:
             self._logger.debug(
                 f"{self._session.profile_name:<20} identity (not cached)"
             )
-            response = self._client.get_caller_identity()
+            response = self.client.get_caller_identity()
             del response["ResponseMetadata"]
             self._identity = response
             return self._identity
@@ -27,6 +27,10 @@ class STSManager:
         self._logger.debug(f"{self._session.profile_name:<20} identity (cached)")
         return self._identity
 
-    def to_dict(self):
+    def to_dict(self) -> dict[str, dict]:
         """This method is used to convert the object to Dict."""
-        return self.__dict__
+        data = {
+            "Identity": self.identity,
+        }
+
+        return data
