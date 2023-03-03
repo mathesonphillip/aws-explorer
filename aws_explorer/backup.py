@@ -11,27 +11,27 @@ class BackupManager:
         self.client = self.session.client("backup")
 
     @property
-    def vaults(self) -> List[object]:
-        result: List = []
+    def vaults(self) -> List[Dict]:
+        result: List[Dict] = []
         for i in self.client.list_backup_vaults()["BackupVaultList"]:
             result.append({"Account": self.session.profile_name, **i})
         return result
 
     @property
-    def plans(self) -> List[object]:
-        result: List = []
+    def plans(self) -> List[Dict]:
+        result: List[Dict] = []
         for i in self.client.list_backup_plans()["BackupPlansList"]:
             result.append({"Account": self.session.profile_name, **i})
         return result
 
     @property
-    def jobs(self) -> List[object]:
-        result: List = []
+    def jobs(self) -> List[Dict]:
+        result: List[Dict] = []
         for i in self.client.list_backup_jobs()["BackupJobs"]:
             result.append({"Account": self.session.profile_name, **i})
         return result
 
-    def to_dict(self, filtered: bool = True) -> Dict[str, List[object]]:
+    def to_dict(self, filtered: bool = True) -> Dict[str, List[Dict]]:
         """This method is used to convert the object to Dict."""
         if not filtered:
             return {

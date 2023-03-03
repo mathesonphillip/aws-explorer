@@ -1,51 +1,38 @@
+from typing import Dict, List
+
+import boto3
+
 from .utils import filter_and_sort_dict_list
 
 
 class SSMManager:
-    def __init__(self, session):
-        self._session = session
-        self.client = self._session.client("ssm")
-        self._parameters = None
-        self._instances = None
+    def __init__(self, session: boto3.Session) -> None:
+        self.session = session
+        self.client = self.session.client("ssm")
 
     @property
-    def parameters(self):
-        if not self._parameters:
-            response = self.client.describe_parameters().get("Parameters")
-            _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
-            ]
-            self._parameters = response
-        return self._parameters
+    def parameters(self) -> List[Dict]:
+        result: List[Dict] = []
+        for i in self.client.describe_parameters()["Parameters"]:
+            result.append({"Account": self.session.profile_name, **i})
+        return result
 
     @property
-    def instances(self):
-        response = self.client.describe_instance_information().get(
-            "InstanceInformationList"
-        )
-        _ = [item.update({"Account": self._session.profile_name}) for item in response]
-        self._instances = response
-        return self._instances
+    def instances(self) -> List[Dict]:
+        result: List[Dict] = []
+        for i in self.client.describe_instance_information()["InstanceInformationList"]:
+            result.append({"Account": self.session.profile_name, **i})
+        return result
 
-    # WIP: This method is not working yet
     def run_command(self, instance_ids, document_name, parameters, comment):
-        response = self.client.send_command(
-            InstanceIds=instance_ids,
-            DocumentName=document_name,
-            Parameters=parameters,
-            Comment=comment,
-        )
-        return response
+        ...
 
-    def to_dict(self, filtered=True):
+    def to_dict(self, filtered: bool = True) -> Dict[str, List[Dict]]:
         if not filtered:
             return {"Parameters": self.parameters, "Instances": self.instances}
 
         return {
-            "Parameters": filter_and_sort_dict_list(
-                self.parameters, ["Account", "Name", "Type", "LastModifiedDate"]
-            ),
+            "Parameters": filter_and_sort_dict_list(self.parameters, ["Account", "Name", "Type", "LastModifiedDate"]),
             "Instances": filter_and_sort_dict_list(
                 self.instances,
                 [
@@ -61,10 +48,6 @@ class SSMManager:
                     "PlatformType",
                     "PlatformName",
                     "PlatformVersion",
-                    # "ActivationId",
-                    # "IamRole",
-                    # "LastSuccessfulPingDateTime",
-                    # "AssociationStatus",
                 ],
             ),
         }

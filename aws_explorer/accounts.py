@@ -49,7 +49,8 @@ class Accounts:
                         index=False,
                     )
 
-                    column_settings = [{"header": column} for column in df.columns]
+                    column_settings = [{"header": column}
+                                       for column in df.columns]
                     print(column_settings)
 
                     # Add the Excel table structure. Pandas will add the data.

@@ -1,51 +1,37 @@
+from typing import Dict, List
+
+import boto3
+
 from .utils import filter_and_sort_dict_list
 
 
 class CloudWatchManager:
-    def __init__(self, session):
-        self._session = session
-        self.client = self._session.client("cloudwatch")
-        self._alarms = None
-        self._metrics = None
-        self._alarm_history = None
+    def __init__(self, session: boto3.Session) -> None:
+        self.session = session
+        self.client = self.session.client("cloudwatch")
 
     @property
-    def alarms(self):
-        if not self._alarms:
-            response = self.client.describe_alarms().get("MetricAlarms")
-
-            _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
-            ]
-            self._alarms = response
-            return self._alarms
-        return self._alarms
+    def alarms(self) -> List[Dict]:
+        result: List[Dict] = []
+        for i in self.client.describe_alarms()["MetricAlarms"]:
+            result.append({"Account": self.session.profile_name, **i})
+        return result
 
     @property
-    def metrics(self):
-        if not self._metrics:
-            response = self.client.list_metrics().get("Metrics")
-
-            _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
-            ]
-            self._metrics = response
-            return self._metrics
-        return self._metrics
+    def metrics(self) -> List[Dict]:
+        result: List[Dict] = []
+        for i in self.client.list_metrics()["Metrics"]:
+            result.append({"Account": self.session.profile_name, **i})
+        return result
 
     @property
-    def alarm_history(self):
-        response = self.client.describe_alarm_history(
-            MaxRecords=100, HistoryItemType="StateUpdate", ScanBy="TimestampDescending"
-        ).get("AlarmHistoryItems")
-        _ = [item.update({"Account": self._session.profile_name}) for item in response]
-        self._alarm_history = response
+    def alarm_history(self) -> List[Dict]:
+        result: List[Dict] = []
+        for i in self.client.describe_alarm_history()["AlarmHistoryItems"]:
+            result.append({"Account": self.session.profile_name, **i})
+        return result
 
-        return self._alarm_history
-
-    def to_dict(self, filtered=True):
+    def to_dict(self, filtered: bool = True) -> Dict[str, List[Dict]]:
         if not filtered:
             return {
                 "Alarms": self.alarms,
@@ -65,15 +51,8 @@ class CloudWatchManager:
                     "StateValue",
                     "StateReason",
                     "StateUpdatedTimestamp",
-                    # "AlarmArn",
-                    # "Statistic",
-                    # "Dimensions",
-                    # "Period",
-                    # "EvaluationPeriods",
                     "Threshold",
                     "ComparisonOperator",
-                    # "TreatMissingData",
-                    # "EvaluateLowSampleCountPercentile",
                 ],
             ),
             "Metrics": filter_and_sort_dict_list(

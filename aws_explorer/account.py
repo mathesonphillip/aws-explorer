@@ -108,7 +108,8 @@ class Account:
         with pd.ExcelWriter(path=export_path) as writer:
             # iterate over the top-level keys in the dictionary
             for service_key in data_dict:  # type: ignore
-                for key, data in data_dict[service_key].items():  # type: ignore
+                for key, data in data_dict[service_key].items(
+                ):  # type: ignore
                     sheet_name = f"{service_key}.{key}"
 
                     print(f"Writing {sheet_name} to Excel")
@@ -149,7 +150,8 @@ class Account:
 
     def export(self, extension: str, export_path: str = ".") -> None:
         """This method is used to export the account to a file."""
-        # Define a dictionary with file extensions and corresponding file writing functions
+        # Define a dictionary with file extensions and corresponding file
+        # writing functions
         file_writers = {
             "json": self.export_to_json,
             "yaml": self.export_to_yaml,
@@ -157,7 +159,8 @@ class Account:
         }
 
         # Get the file writing function corresponding to the file extension
-        file_writer: Optional[Callable[[Any, str], None]] = file_writers.get(extension)
+        file_writer: Optional[Callable[[Any, str], None]
+                              ] = file_writers.get(extension)
 
         if file_writer is None:
             raise ValueError(f"Unsupported file extension: {extension}")

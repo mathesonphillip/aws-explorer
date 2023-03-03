@@ -1,248 +1,162 @@
+from typing import Dict, List, Optional
+
+import boto3
+
 from .utils import filter_and_sort_dict_list
 
 
 class EC2Manager:
     """This class is used to manage EC2 resources."""
 
-    def __init__(self, session):
-        self._session = session
-        self.ec2 = self._session.client("ec2")
-        self._instances = None
-        self._security_groups = None
-        self._security_group_rules = None
-        self._vpcs = None
-        self._subnets = None
-        self._internet_gateways = None
-        self._route_tables = None
-        self._network_acls = None
-        self._network_interfaces = None
-        self._volumes = None
-        self._snapshots = None
-        self._images = None
+    def __init__(self, session: boto3.Session) -> None:
+        self.session = session
+        self.client = self.session.client("ec2")
 
     @property
-    def instances(self):
-        """This property is used to get a list of EC2 instances."""
-        if not self._instances:
-            result = []
-            instances = self.ec2.describe_instances()["Reservations"]
-            for instance in instances:
-                instance = instance.get("Instances")
-                result.append(instance[0])
+    def instances(self) -> List[Dict]:
+        result: List[Dict] = []
+        for res in self.client.describe_instances()["Reservations"]:
+            for j in res.get("Instances", []):
+                _instance: Dict = {
+                    "Account": self.session.profile_name,
+                    "Name": None,
+                    "SSMManaged": False,
+                    "VpcName": False,
+                    "SubnetName": False,
+                    **j,
+                }
 
-            for instance in result:
-                instance["Account"] = self._session.profile_name
-                instance["Name"] = None
-                instance["SSMManaged"] = False
-                instance["VpcName"] = False
-                instance["SubnetName"] = False
-
-                # Get instance name
-                for tag in instance.get("Tags"):
+                for tag in j.get("Tags", []):
                     if tag.get("Key") == "Name":
-                        instance["Name"] = tag.get("Value")
+                        _instance["Name"] = tag.get("Value")
 
-                # Check if instance is an SSM managed instance
-                ssm_instances = (
-                    self._session.client("ssm")
-                    .describe_instance_information()
-                    .get("InstanceInformationList")
-                )
-                for ssm_instance in ssm_instances:
-                    if ssm_instance.get("InstanceId") == instance.get("InstanceId"):
-                        instance["SSMManaged"] = True
+                for _ssm in (
+                    self.session.client("ssm").describe_instance_information().get("InstanceInformationList", [])
+                ):
+                    if _ssm.get("InstanceId") == j.get("InstanceId"):
+                        _instance["SSMManaged"] = True
 
-                # Get VPC name
-                for vpc in self.vpcs:
-                    if vpc.get("VpcId") == instance.get("VpcId"):
-                        instance["VpcName"] = vpc.get("Name")
-                for subnet in self.subnets:
-                    if subnet.get("SubnetId") == instance.get("SubnetId"):
-                        instance["SubnetName"] = subnet.get("Name")
+                for _vpc in self.vpcs:
+                    if _vpc.get("VpcId") == j.get("VpcId"):
+                        _instance["VpcName"] = _vpc.get("Name")
 
-            self._instances = result
+                for _sub in self.subnets:
+                    if _sub.get("SubnetId") == j.get("SubnetId"):
+                        _instance["SubnetName"] = _sub.get("Name")
 
-        return self._instances
+                result.append(_instance)
+        return result
 
     @property
-    def security_groups(self):
-        """This property is used to get a list of security groups."""
-        if not self._security_groups:
-            response = self.ec2.describe_security_groups().get("SecurityGroups")
-
-            _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
-            ]
-
-            self._security_groups = response
-
-        return self._security_groups
+    def security_groups(self) -> List[Dict]:
+        result: List[Dict] = []
+        for i in self.client.describe_security_groups()["SecurityGroups"]:
+            result.append({"Account": self.session.profile_name, **i})
+        return result
 
     @property
-    def security_group_rules(self):
-        """This property is used to get a list of security group rules."""
-        if not self._security_group_rules:
-            rules = self.ec2.describe_security_group_rules().get("SecurityGroupRules")
-
-            groups = self.security_groups
-
-            for rule in rules:
-                rule["Account"] = self._session.profile_name
-                rule["SecurityGroupName"] = None
-
-                for group in groups:
-                    if group.get("GroupId") == rule.get("GroupId"):
-                        rule["SecurityGroupName"] = group.get("GroupName")
-                        break
-
-            self._security_group_rules = rules
-
-        return self._security_group_rules
+    def security_group_rules(self) -> List[Dict]:
+        result: List[Dict] = []
+        for i in self.client.describe_security_group_rules()["SecurityGroupRules"]:
+            _rules: Dict = {
+                "Account": self.session.profile_name,
+                "GroupName": None,
+                **i,
+            }
+            for group in self.security_groups:
+                if group.get("GroupId") == i.get("GroupId"):
+                    _rules["GroupName"] = group.get("GroupName")
+                    break
+                result.append(_rules)
+        return result
 
     @property
-    def vpcs(self):
-        """This property is used to get a list of VPCs."""
-        vpcs = self.ec2.describe_vpcs().get("Vpcs")
-        for vpc in vpcs:
-            vpc["Account"] = self._session.profile_name
-            vpc["VpcName"] = None
-
-            for tag in vpc.get("Tags"):
+    def vpcs(self) -> List[Dict]:
+        result: List[Dict] = []
+        for i in self.client.describe_vpcs()["Vpcs"]:
+            _vpc: Dict = {"Account": self.session.profile_name, "VpcName": None, **i}
+            for tag in i.get("Tags", []):
                 if tag.get("Key") == "Name":
-                    vpc["VpcName"] = tag.get("Value")
+                    _vpc["VpcName"] = tag.get("Value")
                     break
-
-        return vpcs
+            result.append(_vpc)
+        return result
 
     @property
-    def subnets(self):
-        """This property is used to get a list of subnets."""
-        subnets = self.ec2.describe_subnets()["Subnets"]
+    def subnets(self) -> List[Dict]:
+        result: List[Dict] = []
+        for i in self.client.describe_subnets()["Subnets"]:
+            _subnet: Dict = {
+                "Account": self.session.profile_name,
+                "SubnetName": None,
+                "VpcName": None,
+                **i,
+            }
 
-        for subnet in subnets:
-            subnet["Account"] = self._session.profile_name
-            subnet["SubnetName"] = None
-            subnet["VpcName"] = None
+            for _vps in self.vpcs:
+                if _vps.get("VpcId") == i.get("VpcId"):
+                    _subnet["VpcName"] = _vps.get("VpcName")
+                    break
 
-            for tag in subnet.get("Tags", []):
+            for tag in i.get("Tags", []):
                 if tag.get("Key") == "Name":
-                    subnet["Name"] = tag.get("Value")
+                    _subnet["SubnetName"] = tag.get("Value")
                     break
 
-            for vpc in self.vpcs:
-                if vpc.get("VpcId") == subnet.get("VpcId"):
-                    subnet["VpcName"] = vpc.get("Name")
-                    break
+            result.append({"Account": self.session.profile_name, **i})
 
-        return subnets
+        return result
 
     @property
-    def internet_gateways(self):
-        """This property is used to get a list of internet gateways."""
-        if not self._internet_gateways:
-            response = self.ec2.describe_internet_gateways().get("InternetGateways")
-
-            _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
-            ]
-
-            self._internet_gateways = response
-
-        return self._internet_gateways
+    def internet_gateways(self) -> List[Dict]:
+        result: List[Dict] = []
+        for i in self.client.describe_internet_gateways()["InternetGateways"]:
+            result.append({"Account": self.session.profile_name, **i})
+        return result
 
     @property
-    def route_tables(self):
-        """This property is used to get a list of route tables."""
-        if not self._route_tables:
-            response = self.ec2.describe_route_tables().get("RouteTables")
-
-            _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
-            ]
-
-            self._route_tables = response
-
-        return self._route_tables
+    def route_tables(self) -> List[Dict]:
+        result: List[Dict] = []
+        for i in self.client.describe_route_tables()["RouteTables"]:
+            result.append({"Account": self.session.profile_name, **i})
+        return result
 
     @property
-    def network_acls(self):
-        """This property is used to get a list of network ACLs."""
-        if not self._network_acls:
-            response = self.ec2.describe_network_acls().get("NetworkAcls")
-
-            _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
-            ]
-
-            self._network_acls = response
-
-        return self._network_acls
+    def network_acls(self) -> List[Dict]:
+        result: List[Dict] = []
+        for i in self.client.describe_network_acls()["NetworkAcls"]:
+            result.append({"Account": self.session.profile_name, **i})
+        return result
 
     @property
-    def network_interfaces(self):
-        """This property is used to get a list of network interfaces."""
-        if not self._network_interfaces:
-            response = self.ec2.describe_network_interfaces().get("NetworkInterfaces")
-
-            _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
-            ]
-
-            self._network_interfaces = response
-
-        return self._network_interfaces
+    def network_interfaces(self) -> List[Dict]:
+        result: List[Dict] = []
+        for i in self.client.describe_network_interfaces()["NetworkInterfaces"]:
+            result.append({"Account": self.session.profile_name, **i})
+        return result
 
     @property
-    def volumes(self):
-        """This property is used to get a list of volumes."""
-        if not self._volumes:
-            response = self.ec2.describe_volumes().get("Volumes")
-
-            _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
-            ]
-
-            self._volumes = response
-
-        return self._volumes
+    def volumes(self) -> List[Dict]:
+        result: List[Dict] = []
+        for i in self.client.describe_volumes()["Volumes"]:
+            result.append({"Account": self.session.profile_name, **i})
+        return result
 
     @property
-    def snapshots(self):
-        """This property is used to get a list of snapshots."""
-        if not self._snapshots:
-            response = self.ec2.describe_snapshots(OwnerIds=["self"]).get("Snapshots")
-
-            _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
-            ]
-
-            self._snapshots = response
-
-        return self._snapshots
+    def snapshots(self) -> List[Dict]:
+        result: List[Dict] = []
+        for i in self.client.describe_snapshots(OwnerIds=["self"])["Snapshots"]:
+            result.append({"Account": self.session.profile_name, **i})
+        return result
 
     @property
-    def images(self):
-        """This property is used to get a list of images."""
-        if not self._images:
-            response = self.ec2.describe_images(Owners=["self"]).get("Images")
+    def images(self) -> List[Dict]:
+        result: List[Dict] = []
+        for i in self.client.describe_images(Owners=["self"])["Images"]:
+            result.append({"Account": self.session.profile_name, **i})
+        return result
 
-            _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
-            ]
-
-            self._images = response
-
-        return self._images
-
-    def to_dict(self, filtered=True):
+    def to_dict(self, filtered: bool = True) -> Dict[str, List[Dict]]:
         """This method is used to convert the object to Dict."""
         if not filtered:
             return {
@@ -274,8 +188,6 @@ class EC2Manager:
                     "PublicIpAddress",
                     "VpcName",
                     "SubnetName",
-                    # "VpcId",
-                    # "SubnetId",
                     "SecurityGroups",
                     "Tags",
                     "InstanceType",
@@ -358,7 +270,6 @@ class EC2Manager:
                     "RouteTableId",
                     "Routes",
                     "Associations",
-                    # "PropagatingVgws",
                     "Tags",
                 ],
             ),
@@ -377,7 +288,6 @@ class EC2Manager:
             "NetworkInterfaces": filter_and_sort_dict_list(
                 self.network_interfaces,
                 [
-                    # Add Account Name Lookup
                     "Account",
                     "NetworkInterfaceId",
                     "PrivateIpAddress",
@@ -392,9 +302,6 @@ class EC2Manager:
                     "OwnerId",
                     "PrivateIpAddresses",
                     "Status",
-                    # "RequesterId",
-                    # "RequesterManaged",
-                    # "SourceDestCheck",
                     "Attachment",
                     "Tags",
                 ],
@@ -426,7 +333,6 @@ class EC2Manager:
                     "VolumeSize",
                     "Description",
                     "Encrypted",
-                    # "OwnerId",
                     "StartTime",
                     "Tags",
                 ],

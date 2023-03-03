@@ -1,101 +1,63 @@
+from typing import Dict, List
+
+import boto3
+
 from .utils import filter_and_sort_dict_list
 
 
 class IAMManager:
     """This class is used to manage IAM resources."""
 
-    def __init__(self, session):
-        self._session = session
-        self.iam = self._session.client("iam")
-        self._users = None
-        self._groups = None
-        self._roles = None
-        self._policies = None
-        self._alias = None
+    def __init__(self, session: boto3.Session) -> None:
+        self.session = session
+        self.client = self.session.client("iam")
 
     @property
-    def users(self):
-        """This property is used to get a list of IAM users."""
-        users = self.iam.list_users().get("Users", [])
-
-        # mfa_devices = self.iam.list_mfa_devices().get("MFADevices", [])
-
-        for user in users:
-            user["Account"] = self._session.profile_name
-            user["Groups"] = self.iam.list_groups_for_user(
-                UserName=user["UserName"]
-            ).get("Groups", [])
-            user["Policies"] = self.iam.list_user_policies(
-                UserName=user["UserName"]
-            ).get("PolicyNames", [])
-            user["AttachedPolicies"] = self.iam.list_attached_user_policies(
-                UserName=user["UserName"]
-            ).get("AttachedPolicies", [])
-            user["AccessKeys"] = self.iam.list_access_keys(
-                UserName=user["UserName"]
-            ).get("AccessKeyMetadata", [])
-
-            # for device in mfa_devices:
-            #     if device["UserName"] == user["UserName"]:
-            #         user["MFADevices"] = device
-            #         break
-
-        return users
+    def users(self) -> List[Dict]:
+        result: List[Dict] = []
+        for i in self.client.list_users()["Users"]:
+            _user: Dict = {
+                "Account": self.session.profile_name,
+                "Groups": self.client.list_groups_for_user(UserName=i["UserName"]).get("Groups", []),
+                "Policies": self.client.list_user_policies(UserName=i["UserName"]).get("PolicyNames", []),
+                "AttachedPolicies": self.client.list_attached_user_policies(UserName=i["UserName"]).get(
+                    "AttachedPolicies", []
+                ),
+                "AccessKeys": self.client.list_access_keys(UserName=i["UserName"]).get("AccessKeyMetadata", []),
+                "MFADevices": self.client.list_mfa_devices(UserName=i["UserName"]).get("MFADevices", []),
+                **i,
+            }
+            result.append(_user)
+        return result
 
     @property
-    def groups(self):
-        # GROUP ATTACHMENTRS
-        """This property is used to get a list of IAM groups."""
-        if not self._groups:
-            response = self.iam.list_groups().get("Groups")
-            _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
-            ]
-            self._groups = response
-        return self._groups
+    def groups(self) -> List[Dict]:
+        result: List[Dict] = []
+        for i in self.client.list_groups()["Groups"]:
+            result.append({"Account": self.session.profile_name, **i})
+        return result
 
     @property
-    def roles(self):
-        # ROLE ATTACHMENTRS
-        """This property is used to get a list of IAM roles."""
-        if not self._roles:
-            response = self.iam.list_roles().get("Roles")
-            _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
-            ]
-            self._roles = response
-        return self._roles
+    def roles(self) -> List[Dict]:
+        result: List[Dict] = []
+        for i in self.client.list_roles()["Roles"]:
+            result.append({"Account": self.session.profile_name, **i})
+        return result
 
     @property
-    # POLICY ATTACHMENTRS
-    def policies(self):
-        """This property is used to get a list of IAM policies."""
-        if not self._policies:
-            response = self.iam.list_policies(Scope="Local").get("Policies")
-            _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
-            ]
-            self._policies = response
-        return self._policies
+    def policies(self) -> List[Dict]:
+        result: List[Dict] = []
+        for i in self.client.list_policies(Scope="Local")["Policies"]:
+            result.append({"Account": self.session.profile_name, **i})
+        return result
 
-    @property
-    def alias(self):
-        """This property is used to get the alias of the account."""
-        if not self._alias:
-            response = self.iam.list_account_aliases().get("AccountAliases")
-            _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
-            ]
+    def get_alias(self) -> str | None:
+        result = self.client.list_account_aliases().get("AccountAliases")
+        if not result:
+            return None
+        return result[0]
 
-            if response:
-                self._alias = response[0]
-        return self._alias
-
-    def to_dict(self, filtered=True):
+    def to_dict(self, filtered: bool = True) -> Dict[str, List[Dict]]:
         if not filtered:
             return {
                 "Users": self.users,

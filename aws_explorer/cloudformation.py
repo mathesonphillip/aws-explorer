@@ -1,74 +1,47 @@
+from typing import Dict, List
+
+import boto3
+
 from .utils import filter_and_sort_dict_list
 
 
 class CloudFormationManager:
-    def __init__(self, session):
-        self._session = session
-        self.client = self._session.client("cloudformation")
-        self._stacks = None
-        self._stack_resources = None
+    def __init__(self, session: boto3.Session) -> None:
+        self.session = session
+        self.client = self.session.client("cloudformation")
 
     @property
-    def stacks(self):
-        if not self._stacks:
-            # FILTER out DELETE_COMPLETE stacks
-
-            _stacks = []
-
-            for stack in self.client.list_stacks().get("StackSummaries"):
-                if stack.get("StackStatus") == "DELETE_COMPLETE":
-                    continue
-                _stacks.append(stack)
-
-            # Add Account to each item
-            _ = [
-                item.update({"Account": self._session.profile_name}) for item in _stacks
-            ]
-
-            self._stacks = _stacks
-
-            return self._stacks
-
-        return self._stacks
-
-    @property
-    def stack_resources(self):
-        if not self._stack_resources:
-            result = []
-            for stack in self.stacks:
-                if stack.get("StackStatus") == "DELETE_COMPLETE":
-                    continue
-
-                stack_name = stack.get("StackName")
-                resources = self.client.list_stack_resources(StackName=stack_name)[
-                    "StackResourceSummaries"
-                ]
-                result.extend(resources)
-
-            _ = [
-                item.update({"Account": self._session.profile_name}) for item in result
-            ]
-            self._stack_resources = result
-
-        return self._stack_resources
-
-    def detect_drift(self):
-        """This method is used to detect drift in CloudFormation stacks."""
-
-        stack_drift_detection_ids = []
-        for stack in self.stacks:
-            if stack.get("StackStatus") == "DELETE_COMPLETE":
+    def stacks(self) -> List[Dict]:
+        result: List = []
+        for i in self.client.list_stacks()["StackSummaries"]:
+            if i["StackStatus"] == "DELETE_COMPLETE":
                 continue
+            result.append({"Account": self.session.profile_name, **i})
+        return result
 
-            stack_name = stack.get("StackName")
-            drift_id = self.client.detect_stack_drift(StackName=stack_name).get(
+    @property
+    def stack_resources(self) -> List[Dict]:
+        result: List = []
+        for stack in self.stacks:
+            resources = self.client.list_stack_resources(StackName=stack["StackName"])[
+                "StackResourceSummaries"
+            ]
+            result.extend(resources)
+        for i in result:
+            i["Account"] = self.session.profile_name
+        return result
+
+    def detect_drift(self) -> List[str]:
+        """This method is used to detect drift in CloudFormation stacks."""
+        result: List = []
+        for stack in self.stacks:
+            drift_id = self.client.detect_stack_drift(StackName=stack["StackName"])[
                 "StackDriftDetectionId"
-            )
-            stack_drift_detection_ids.append(drift_id)
+            ]
+            result.append(drift_id)
+        return result
 
-        return stack_drift_detection_ids
-
-    def to_dict(self, filtered=True):
+    def to_dict(self, filtered: bool = True) -> Dict[str, List[Dict]]:
         """This method is used to convert the object to Dict."""
         if not filtered:
             return {
@@ -86,7 +59,6 @@ class CloudFormationManager:
                     "CreationTime",
                     "LastUpdatedTime",
                     "DriftInformation",
-                    # "StackStatusReason",
                     "TemplateDescription",
                 ],
             ),
@@ -101,8 +73,6 @@ class CloudFormationManager:
                     "LogicalResourceId",
                     "PhysicalResourceId",
                     "LastUpdatedTimestamp",
-                    # "ResourceStatusReason",
-                    # "ModuleInfo",
                 ],
             ),
         }

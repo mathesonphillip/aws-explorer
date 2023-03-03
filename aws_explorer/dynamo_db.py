@@ -1,34 +1,32 @@
+from typing import Dict, List
+
+import boto3
+
 from .utils import filter_and_sort_dict_list
 
 
 class DynamoDBManager:
-    def __init__(self, session):
-        self._session = session
-        self.client = self._session.client("dynamodb")
-        self._tables = None
+    def __init__(self, session: boto3.Session) -> None:
+        self.session = session
+        self.client = self.session.client("dynamodb")
 
     @property
-    def tables(self):
-        if not self._tables:
-            table_names = self.client.list_tables().get("TableNames")
+    def table_name(self) -> List[Dict]:
+        result: List[Dict] = []
+        for i in self.client.list_tables()["TableNames"]:
+            result.append(
+                {"Account": self.session.profile_name, "TableName": i})
+        return result
 
-            _tables = []
-            for table_name in table_names:
-                _tables.append(
-                    self.client.describe_table(TableName=table_name).get("Table")
-                )
+    @property
+    def tables(self) -> List[Dict]:
+        result: List[Dict] = []
+        for i in self.table_name:
+            t = self.client.describe_table(TableName=i["TableName"])
+            result.append({"Account": self.session.profile_name, **t})
+        return result
 
-            # Add Account to each item
-            _ = [
-                item.update({"Account": self._session.profile_name}) for item in _tables
-            ]
-
-            self._tables = _tables
-            return self._tables
-
-        return self._tables
-
-    def to_dict(self, filtered=True):
+    def to_dict(self, filtered: bool = True) -> Dict[str, List[Dict]]:
         """This method is used to convert the object to Dict."""
         if not filtered:
             return {"tables": self.tables}
@@ -49,13 +47,6 @@ class DynamoDBManager:
                     "ProvisionedThroughput",
                     "TableArn",
                     "TableId",
-                    # "LatestStreamArn",
-                    # "LatestStreamLabel",
-                    # "LocalSecondaryIndexes",
-                    # "Replicas",
-                    # "RestoreSummary",
-                    # "SSEDescription",
-                    # "StreamSpecification",
                 ],
             )
         }

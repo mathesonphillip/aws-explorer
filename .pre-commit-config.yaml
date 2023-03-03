@@ -3,10 +3,10 @@
 # Its hard to find the right balance between speed and functionality
 
 repos:
-  - repo: https://github.com/psf/black
-    rev: 23.1.0
-    hooks:
-      - id: black
+  # - repo: https://github.com/psf/black
+  #   rev: 23.1.0
+  #   hooks:
+  #     - id: black
   - repo: https://github.com/PyCQA/flake8
     rev: 6.0.0
     hooks:

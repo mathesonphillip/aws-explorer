@@ -1,43 +1,29 @@
+from typing import Dict, List
+
+import boto3
+
 from .utils import filter_and_sort_dict_list
 
 
 class S3Manager:
     """This class is used to manage S3 resources."""
 
-    def __init__(self, session):
-        self._session = session
-        self.s3 = self._session.client("s3")
-        self._buckets = None
+    def __init__(self, session: boto3.Session) -> None:
+        self.session = session
+        self.client = self.session.client("s3")
 
     @property
-    def buckets(self):
-        """This property is used to get a list of S3 buckets."""
+    def buckets(self) -> List[Dict]:
+        result: List = []
+        for i in self.client.list_buckets()["Buckets"]:
+            _bucket: Dict = {"Account": self.session.profile_name, **i}
+            if b_name := i.get("Name"):
+                _bucket["Location"] = self.client.get_bucket_location(Bucket=b_name).get("LocationConstraint")
+                _bucket["Encryption"] = self.client.get_bucket_encryption(Bucket=b_name)
+            result.append(_bucket)
+        return result
 
-        if not self._buckets:
-            buckets = self.s3.list_buckets()["Buckets"]
-            for bucket in buckets:
-                bucket["Location"] = self.s3.get_bucket_location(
-                    Bucket=bucket["Name"]
-                ).get("LocationConstraint")
-                if bucket["Location"] is None:
-                    bucket["Location"] = "us-east-1"
-                try:
-                    bucket["Encryption"] = self.s3.get_bucket_encryption(
-                        Bucket=bucket["Name"]
-                    ).get("ServerSideEncryptionConfiguration")
-                except self.s3.exceptions.ClientError as error:
-                    if error.response["Error"]["Code"] == "AccessDenied":
-                        bucket["Encryption"] = None
-                    else:
-                        raise error
-            _ = [
-                item.update({"Account": self._session.profile_name}) for item in buckets
-            ]
-            self._buckets = buckets
-
-        return self._buckets
-
-    def to_dict(self, filtered=True):
+    def to_dict(self, filtered: bool = True) -> Dict[str, List[Dict]]:
         if not filtered:
             return {"Buckets": self.buckets}
 
