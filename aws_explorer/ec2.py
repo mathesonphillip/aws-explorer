@@ -25,7 +25,6 @@ class EC2Manager:
 
     @property
     def instances(self):
-        # TODO: Add SSM Agent status
         """This property is used to get a list of EC2 instances."""
         if not self._instances:
             result = []
@@ -34,9 +33,35 @@ class EC2Manager:
                 instance = instance.get("Instances")
                 result.append(instance[0])
 
-            _ = [
-                item.update({"Account": self._session.profile_name}) for item in result
-            ]
+            for instance in result:
+                instance["Account"] = self._session.profile_name
+                instance["Name"] = None
+                instance["SSMManaged"] = False
+                instance["VpcName"] = False
+                instance["SubnetName"] = False
+
+                # Get instance name
+                for tag in instance.get("Tags"):
+                    if tag.get("Key") == "Name":
+                        instance["Name"] = tag.get("Value")
+
+                # Check if instance is an SSM managed instance
+                ssm_instances = (
+                    self._session.client("ssm")
+                    .describe_instance_information()
+                    .get("InstanceInformationList")
+                )
+                for ssm_instance in ssm_instances:
+                    if ssm_instance.get("InstanceId") == instance.get("InstanceId"):
+                        instance["SSMManaged"] = True
+
+                # Get VPC name
+                for vpc in self.vpcs:
+                    if vpc.get("VpcId") == instance.get("VpcId"):
+                        instance["VpcName"] = vpc.get("Name")
+                for subnet in self.subnets:
+                    if subnet.get("SubnetId") == instance.get("SubnetId"):
+                        instance["SubnetName"] = subnet.get("Name")
 
             self._instances = result
 
@@ -45,7 +70,6 @@ class EC2Manager:
     @property
     def security_groups(self):
         """This property is used to get a list of security groups."""
-        # TODO: ADD RULE NAMES TO SEC GROUP RULES
         if not self._security_groups:
             response = self.ec2.describe_security_groups().get("SecurityGroups")
 
@@ -62,41 +86,61 @@ class EC2Manager:
     def security_group_rules(self):
         """This property is used to get a list of security group rules."""
         if not self._security_group_rules:
-            response = self.ec2.describe_security_group_rules().get(
-                "SecurityGroupRules"
-            )
+            rules = self.ec2.describe_security_group_rules().get("SecurityGroupRules")
 
-            _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
-            ]
+            groups = self.security_groups
 
-            self._security_group_rules = response
+            for rule in rules:
+                rule["Account"] = self._session.profile_name
+                rule["SecurityGroupName"] = None
+
+                for group in groups:
+                    if group.get("GroupId") == rule.get("GroupId"):
+                        rule["SecurityGroupName"] = group.get("GroupName")
+                        break
+
+            self._security_group_rules = rules
 
         return self._security_group_rules
 
     @property
     def vpcs(self):
-        # TODO ADD VPC NAME
         """This property is used to get a list of VPCs."""
-        if not self._vpcs:
-            response = self.ec2.describe_vpcs().get("Vpcs")
+        vpcs = self.ec2.describe_vpcs().get("Vpcs")
+        for vpc in vpcs:
+            vpc["Account"] = self._session.profile_name
+            vpc["VpcName"] = None
 
-            _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
-            ]
+            for tag in vpc.get("Tags"):
+                if tag.get("Key") == "Name":
+                    vpc["VpcName"] = tag.get("Value")
+                    break
 
-            self._vpcs = response
+        self._vpcs = vpcs
 
         return self._vpcs
 
     @property
-    # TODO ADD VPC NAME
     def subnets(self):
         """This property is used to get a list of subnets."""
-        if not self._subnets:
-            self._subnets = self.ec2.describe_subnets()["Subnets"]
+        subnets = self.ec2.describe_subnets()["Subnets"]
+
+        for subnet in subnets:
+            subnet["Account"] = self._session.profile_name
+            subnet["SubnetName"] = None
+            subnet["VpcName"] = None
+
+            for tag in subnet.get("Tags"):
+                if tag.get("Key") == "Name":
+                    subnet["Name"] = tag.get("Value")
+                    break
+
+            for vpc in self.vpcs:
+                if vpc.get("VpcId") == subnet.get("VpcId"):
+                    subnet["VpcName"] = vpc.get("Name")
+                    break
+
+        self._subnets = subnets
 
         return self._subnets
 
@@ -229,12 +273,16 @@ class EC2Manager:
                 [
                     "Account",
                     "InstanceId",
+                    "Name",
+                    "SSMManaged",
                     "State",
                     "KeyName",
                     "PrivateIpAddress",
                     "PublicIpAddress",
-                    "VpcId",
-                    "SubnetId",
+                    "VpcName",
+                    "SubnetName",
+                    # "VpcId",
+                    # "SubnetId",
                     "SecurityGroups",
                     "Tags",
                     "InstanceType",
@@ -249,10 +297,6 @@ class EC2Manager:
                     "GroupId",
                     "GroupName",
                     "Description",
-                    "CidrIpv4",
-                    "CidrIpv6",
-                    "PrefixListId",
-                    "ReferencedGroupInfo",
                     "Tags",
                 ],
             ),
@@ -265,9 +309,11 @@ class EC2Manager:
                     "IpProtocol",
                     "FromPort",
                     "ToPort",
-                    # "IpRange",
-                    # "PrefixListId",
-                    "SecurityGroupId",
+                    "CidrIpv4",
+                    "CidrIpv6",
+                    "PrefixListId",
+                    "ReferencedGroupInfo",
+                    "SecurityGroupName",
                     "Description",
                 ],
             ),
@@ -276,12 +322,11 @@ class EC2Manager:
                 [
                     "Account",
                     "VpcId",
-                    # TODO ADD VPC NAME
+                    "VpcName",
                     "CidrBlock",
                     "IsDefault",
                     "State",
                     "CidrBlockAssociationSet",
-                    # "DhcpOptionsId",
                     "InstanceTenancy",
                     "Tags",
                 ],
@@ -290,9 +335,9 @@ class EC2Manager:
                 self.subnets,
                 [
                     "Account",
-                    # ADD SUBNET NAME
-                    # ADD VPC NAME
                     "VpcId",
+                    "VpcName",
+                    "SubnetName",
                     "AvailabilityZone",
                     "SubnetId",
                     "CidrBlock",

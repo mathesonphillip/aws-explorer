@@ -1,13 +1,10 @@
-from .utils import filter_and_sort_dict_list, get_logger
+from .utils import filter_and_sort_dict_list
 
 
 class IAMManager:
     """This class is used to manage IAM resources."""
 
-    _logger = get_logger(__name__)
-
     def __init__(self, session):
-        self._logger.debug(f"{session.profile_name:<20} iam.__init__()")
         self._session = session
         self.iam = self._session.client("iam")
         self._users = None
@@ -18,15 +15,30 @@ class IAMManager:
 
     @property
     def users(self):
-        # TODO: ADD MORE INFO TO USERS
         """This property is used to get a list of IAM users."""
-        if not self._users:
-            response = self.iam.list_users().get("Users")
-            _ = [
-                item.update({"Account": self._session.profile_name})
-                for item in response
+        users = self.iam.list_users().get("Users")
+
+        mfa_devices = self.iam.list_mfa_devices().get("MFADevices", [])
+
+        for user in users:
+            user["Account"] = self._session.profile_name
+            user["Groups"] = self.iam.list_groups_for_user(
+                UserName=user["UserName"]
+            ).get("Groups", [])
+            user["Policies"] = self.iam.list_user_policies(
+                UserName=user["UserName"]
+            ).get("PolicyNames", [])
+            user["AttachedPolicies"] = self.iam.list_attached_user_policies(
+                UserName=user["UserName"]
+            ).get("AttachedPolicies", [])
+            user["AccessKeys"] = self.iam.list_access_keys(
+                UserName=user["UserName"]
+            ).get("AccessKeyMetadata", [])
+            user["MFADevices"] = [
+                device
+                for device in mfa_devices
+                if device["UserName"] == user["UserName"]
             ]
-            self._users = response
 
         return self._users
 
@@ -99,7 +111,11 @@ class IAMManager:
                     "Account",
                     "UserName",
                     "PasswordLastUsed",
-                    "Arn",
+                    "Groups",
+                    "Policies",
+                    "AttachedPolicies",
+                    "AccessKeys",
+                    "MFADevices",
                     "CreateDate",
                 ],
             ),

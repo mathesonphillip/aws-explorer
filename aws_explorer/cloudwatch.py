@@ -10,6 +10,7 @@ class CloudWatchManager:
         self.client = self._session.client("cloudwatch")
         self._alarms = None
         self._metrics = None
+        self._alarm_history = None
 
     @property
     def alarms(self):
@@ -41,24 +42,22 @@ class CloudWatchManager:
         self._logger.debug(f"{self._session.profile_name:<20} metrics (cached)")
         return self._metrics
 
-    def get_insights(
-        self,
-        start_time,
-        end_time,
-        metric_name,
-        namespace,
-        period,
-        statistic,
-        dimensions,
-    ):
-        # FIXME: Not implemented yet
-        pass
+    @property
+    def alarm_history(self):
+        response = self.client.describe_alarm_history(
+            MaxRecords=100, HistoryItemType="StateUpdate", ScanBy="TimestampDescending"
+        ).get("AlarmHistoryItems")
+        _ = [item.update({"Account": self._session.profile_name}) for item in response]
+        self._alarm_history = response
+
+        return self._alarm_history
 
     def to_dict(self, filtered=True):
         if not filtered:
             return {
                 "Alarms": self.alarms,
                 "Metrics": self.metrics,
+                "AlarmHistory": self.alarm_history,
             }
 
         return {
@@ -93,4 +92,5 @@ class CloudWatchManager:
                     "Dimensions",
                 ],
             ),
+            "AlarmHistory": self.alarm_history,
         }
