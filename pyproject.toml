@@ -1,12 +1,15 @@
 [project]
-name = "aws-explorer"
+name        = "aws-explorer"
 description = "aws-explorer is a CLI tool to explore AWS resources"
-version = "0.1.0"
-authors = [{ name = "Phillip Matheson", email = "matheson.phillip@gmail.com" }]
+version     = "0.1.0"
+authors     = [{ name = "Phillip Matheson", email = "matheson.phillip@gmail.com" }]
 
 [build-system]
-requires = ["setuptools"]
+requires      = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+# /* ---------------------------------- mypy ---------------------------------- */
+
 
 #/* --------------------------------- pytest --------------------------------- */
 
@@ -19,7 +22,8 @@ python_files = "test_*.py *.test.py"
 [tool.pylint]
 max-line-length = 120
 disable = [
-    # "C0103", # (invalid-name)
+    "C0103", # (invalid-name)
+    "R0801", # (duplicate-code)
     # "C0114", # (missing-module-docstring)
     # "C0115", # (missing-class-docstring)
     # "C0116", # (missing-function-docstring)
@@ -38,10 +42,10 @@ disable = [
 max-line-length = 120
 count = true
 ignore = [
-    'E231', # missing whitespace after ','
-    'E241', # multiple spaces after ','
-    'F401', # unused import
-    'F841', # local variable is assigned to but never used
+    # 'E231', # missing whitespace after ','
+    # 'E241', # multiple spaces after ','
+    # 'F401', # unused import
+    # 'F841', # local variable is assigned to but never used
 ]
 per-file-ignores = [
     '__init__.py:F401', # unused import
