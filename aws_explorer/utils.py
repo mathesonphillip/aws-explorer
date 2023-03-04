@@ -19,7 +19,8 @@ def get_logger(name):
 
     # create formatter and add it to the handlers
     formatter = logging.Formatter(
-        "%(name)-20s %(levelname)-8s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+        "%(name)-20s %(levelname)-8s %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+    )
 
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
@@ -27,7 +28,9 @@ def get_logger(name):
     return logger
 
 
-def remove_timezones_from_object(data_object):  # pylint: disable=inconsistent-return-statements
+def remove_timezones_from_object(
+    data_object,
+):  # pylint: disable=inconsistent-return-statements
     """
     This function is used to remove timezone information from a dictionary or list of dictionaries.
     This is necessary for exporting to Excel, which does not support timezone information.

@@ -42,7 +42,9 @@ class Account:  # pylint: disable=too-many-instance-attributes
         if not profile or not region:
             raise ValueError("profile and region are required")
 
-        self.session: boto3.Session = boto3.Session(profile_name=profile, region_name=region)
+        self.session: boto3.Session = boto3.Session(
+            profile_name=profile, region_name=region
+        )
         self._initialise_services()
 
     @classmethod
@@ -170,7 +172,9 @@ class Account:  # pylint: disable=too-many-instance-attributes
                         index=False,
                     )
 
-                    column_settings: List[Dict[str, str]] = [{"header": column} for column in df.columns]
+                    column_settings: List[Dict[str, str]] = [
+                        {"header": column} for column in df.columns
+                    ]
 
                     worksheet = writer.sheets[sheet_name]
                     worksheet.add_table(
@@ -183,9 +187,13 @@ class Account:  # pylint: disable=too-many-instance-attributes
 
                     # Set the column width to the max length of the column header
                     for column in df:
-                        column_length = max(df[column].astype(str).map(len).max(), len(column))
+                        column_length = max(
+                            df[column].astype(str).map(len).max(), len(column)
+                        )
                         col_idx = df.columns.get_loc(column)
-                        writer.sheets[sheet_name].set_column(col_idx, col_idx, column_length)
+                        writer.sheets[sheet_name].set_column(
+                            col_idx, col_idx, column_length
+                        )
 
     def get_filename(self, extension: str) -> str:
         """Get the filename for the export file

@@ -67,35 +67,6 @@ print_header() {
 #                                Event Functions                               #
 # ---------------------------------------------------------------------------- #
 
-is_python() {
-    # Runs the workflow for python files
-    print_header "${FUNCNAME[0]}"
-
-    # Run black on the src directory
-    print_header "black"
-    python -m black --exclude __pycache__ "$WATCH_PATH/aws_explorer"
-    # python -m black --exclude __pycache__ "$WATCH_PATH/tests"
-
-    # Run isort on the src directory
-    print_header "isort"
-    python -m isort --profile black "$WATCH_PATH/aws_explorer"
-    # python -m isort --profile black "$WATCH_PATH/tests"
-
-    # Run flake8 on the src directory
-    print_header "flake8"
-    python -m flake8 --exit-zero --verbose "$WATCH_PATH/aws_explorer"
-    # python -m flake8 --exit-zero --verbose "$WATCH_PATH/tests"
-
-    # Run pylint on the src directory
-    print_header "pylint"
-    pylint --exit-zero --output-format colorized "$WATCH_PATH/aws_explorer"
-    # pylint --exit-zero --output-format colorized "$WATCH_PATH/tests"
-
-    # Run pytest on the src directory
-    print_header "pytest"
-    pytest --verbose "$WATCH_PATH/tests"
-}
-
 git_status() {
     # Outputs the git status
     print_header "git_status()"
@@ -139,20 +110,46 @@ inotifywait "${WATCH_ARGS[@]}" | while read DIRECTORY EVENT FILE; do
     # print_header "$FILE"
 
     if [[ $FILE =~ \.py$ ]]; then
-        is_python "$FILE"
+
+        if [[ $FILE =~ __init__.py$ ]]; then
+
+            print_header "mypy"
+            mypy --check-untyped-defs "$WATCH_PATH/aws_explorer"
+
+            print_header "pylint"
+            pylint --exit-zero --output-format colorized "$WATCH_PATH/aws_explorer"
+        else
+
+            print_header "pytest"
+            pytest --cov=aws_explorer --exitfirst "$WATCH_PATH/tests"
+
+            # print_header "black"
+            # python -m black --exclude __pycache__ "$WATCH_PATH/aws_explorer"
+
+            # print_header "autopep8"
+            # python -m autopep8 --in-place --recursive "$WATCH_PATH/aws_explorer"
+
+            # print_header "isort"
+            # python -m isort --profile black "$WATCH_PATH/aws_explorer"
+
+            # print_header "flake8"
+            # python -m flake8 --exit-zero --verbose "$WATCH_PATH/aws_explorer"
+
+        fi
 
     elif [[ $FILE =~ \.sh$ ]]; then
         printf "Workflow not yet implemented (%s, %s)\n" "$DIRECTORY" "$FILE"
+        git_status
 
     elif [[ $FILE =~ \.md$ ]]; then
         printf "Workflow not yet implemented (%s, %s)\n" "$DIRECTORY" "$FILE"
+        git_status
 
     else
         printf "Workflow not yet implemented (%s, %s)\n" "$DIRECTORY" "$FILE"
-
+        git_status
     fi
 
     # After processing the file, print out the git status
-    git_status
 
 done

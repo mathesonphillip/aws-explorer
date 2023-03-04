@@ -29,7 +29,8 @@ class CloudFormationManager:
         result: List = []
         for stack in self.stacks:
             resources = self.client.list_stack_resources(StackName=stack["StackName"])[
-                "StackResourceSummaries"]
+                "StackResourceSummaries"
+            ]
             result.extend(resources)
         for i in result:
             i["Account"] = self.session.profile_name
@@ -40,7 +41,8 @@ class CloudFormationManager:
         result: List = []
         for stack in self.stacks:
             drift_id = self.client.detect_stack_drift(StackName=stack["StackName"])[
-                "StackDriftDetectionId"]
+                "StackDriftDetectionId"
+            ]
             result.append(drift_id)
         return result
 

@@ -18,6 +18,8 @@ cd aws-explorer
 python setup.py install
 ```
 
+<!-- TODO: Add update for named profile -->
+
 ## Usage
 
 To use the `aws-explorer` package in your Jupyter Notebook, follow the code snippet below:
@@ -64,3 +66,6 @@ The `aws-explorer` package is licensed under the MIT License. See the LICENSE.md
 <!-- ---------------------------- Abbreviations ----------------------------- -->
 
 <!-- *[AWS]: Amazon Web Services -->
+
+
+TODO

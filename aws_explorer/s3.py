@@ -23,9 +23,9 @@ class S3Manager:
             _bucket: Dict = {"Account": self.session.profile_name, **i}
             if b_name := i.get("Name"):
                 _bucket["Location"] = self.client.get_bucket_location(
-                    Bucket=b_name).get("LocationConstraint")
-                _bucket["Encryption"] = self.client.get_bucket_encryption(
-                    Bucket=b_name)
+                    Bucket=b_name
+                ).get("LocationConstraint")
+                _bucket["Encryption"] = self.client.get_bucket_encryption(Bucket=b_name)
             result.append(_bucket)
         return result
 

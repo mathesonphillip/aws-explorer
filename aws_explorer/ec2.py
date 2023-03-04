@@ -33,8 +33,9 @@ class EC2Manager:
                         _instance["Name"] = tag.get("Value")
 
                 for _ssm in (
-                    self.session.client("ssm").describe_instance_information().get(
-                        "InstanceInformationList", [])
+                    self.session.client("ssm")
+                    .describe_instance_information()
+                    .get("InstanceInformationList", [])
                 ):
                     if _ssm.get("InstanceId") == j.get("InstanceId"):
                         _instance["SSMManaged"] = True
@@ -80,8 +81,7 @@ class EC2Manager:
         """Return a list of EC2 VPCs"""
         result: List[Dict] = []
         for i in self.client.describe_vpcs()["Vpcs"]:
-            _vpc: Dict = {"Account": self.session.profile_name,
-                          "VpcName": None, **i}
+            _vpc: Dict = {"Account": self.session.profile_name, "VpcName": None, **i}
             for tag in i.get("Tags", []):
                 if tag.get("Key") == "Name":
                     _vpc["VpcName"] = tag.get("Value")

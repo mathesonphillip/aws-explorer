@@ -30,7 +30,9 @@ class SSMManager:
             result.append({"Account": self.session.profile_name, **i})
         return result
 
-    def run_command(self, instance_ids, document_name, parameters, comment):  # pylint: disable=unused-argument
+    def run_command(
+        self, instance_ids, document_name, parameters, comment
+    ):  # pylint: disable=unused-argument
         """Run a command on an instance"""
 
     def to_dict(self, filtered: bool = True) -> Dict[str, List[Dict]]:
@@ -46,7 +48,9 @@ class SSMManager:
             return {"Parameters": self.parameters, "Instances": self.instances}
 
         return {
-            "Parameters": filter_and_sort_dict_list(self.parameters, ["Account", "Name", "Type", "LastModifiedDate"]),
+            "Parameters": filter_and_sort_dict_list(
+                self.parameters, ["Account", "Name", "Type", "LastModifiedDate"]
+            ),
             "Instances": filter_and_sort_dict_list(
                 self.instances,
                 [

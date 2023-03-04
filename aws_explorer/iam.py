@@ -20,13 +20,21 @@ class IAMManager:
         for i in self.client.list_users()["Users"]:
             _user: Dict = {
                 "Account": self.session.profile_name,
-                "Groups": self.client.list_groups_for_user(UserName=i["UserName"]).get("Groups", []),
-                "Policies": self.client.list_user_policies(UserName=i["UserName"]).get("PolicyNames", []),
-                "AttachedPolicies": self.client.list_attached_user_policies(UserName=i["UserName"]).get(
-                    "AttachedPolicies", []
+                "Groups": self.client.list_groups_for_user(UserName=i["UserName"]).get(
+                    "Groups", []
                 ),
-                "AccessKeys": self.client.list_access_keys(UserName=i["UserName"]).get("AccessKeyMetadata", []),
-                "MFADevices": self.client.list_mfa_devices(UserName=i["UserName"]).get("MFADevices", []),
+                "Policies": self.client.list_user_policies(UserName=i["UserName"]).get(
+                    "PolicyNames", []
+                ),
+                "AttachedPolicies": self.client.list_attached_user_policies(
+                    UserName=i["UserName"]
+                ).get("AttachedPolicies", []),
+                "AccessKeys": self.client.list_access_keys(UserName=i["UserName"]).get(
+                    "AccessKeyMetadata", []
+                ),
+                "MFADevices": self.client.list_mfa_devices(UserName=i["UserName"]).get(
+                    "MFADevices", []
+                ),
                 **i,
             }
             result.append(_user)

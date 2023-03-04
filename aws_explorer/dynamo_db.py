@@ -18,8 +18,7 @@ class DynamoDBManager:
         """Return a list of DynamoDB table names"""
         result: List[Dict] = []
         for i in self.client.list_tables()["TableNames"]:
-            result.append(
-                {"Account": self.session.profile_name, "TableName": i})
+            result.append({"Account": self.session.profile_name, "TableName": i})
         return result
 
     @property

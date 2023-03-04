@@ -60,7 +60,8 @@ class Accounts:
                     )
 
                     column_settings: List[Dict[str, str]] = [
-                        {"header": column} for column in df.columns]
+                        {"header": column} for column in df.columns
+                    ]
                     print(column_settings)
 
                     # Add the Excel table structure. Pandas will add the data.
@@ -75,11 +76,13 @@ class Accounts:
 
                     # Set the column width to the max length of the column header
                     for column in df:
-                        column_length = max(df[column].astype(
-                            str).map(len).max(), len(column))
+                        column_length = max(
+                            df[column].astype(str).map(len).max(), len(column)
+                        )
                         col_idx = df.columns.get_loc(column)
                         writer.sheets[sheet_name].set_column(
-                            col_idx, col_idx, column_length)
+                            col_idx, col_idx, column_length
+                        )
 
     def get_filename(self, prefix: str, extension: str) -> str:
         """This function is used to get the filename."""
