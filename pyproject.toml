@@ -42,10 +42,10 @@ disable = [
 max-line-length = 120
 count = true
 ignore = [
-    'E231', # missing whitespace after ','
-    'E241', # multiple spaces after ','
-    'F401', # unused import
-    'F841', # local variable is assigned to but never used
+    # 'E231', # missing whitespace after ','
+    # 'E241', # multiple spaces after ','
+    # 'F401', # unused import
+    # 'F841', # local variable is assigned to but never used
 ]
 per-file-ignores = [
     '__init__.py:F401', # unused import
