@@ -1,35 +1,64 @@
 # Git Pre-commit hooks
-# Still a work in progress...
-# Its hard to find the right balance between speed and functionality
+# See https://pre-commit.com for more information
+# Ordering based on easiest to pass
 
 repos:
-  # - repo: https://github.com/psf/black
-  #   rev: 23.1.0
-  #   hooks:
-  #     - id: black
-  - repo: https://github.com/PyCQA/flake8
-    rev: 6.0.0
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.6.1
     hooks:
-      - id: flake8
-        additional_dependencies: [Flake8-pyproject]
+      # Opens a notebook, strips its output, and writes the outputless version to the original file.
+      - id: nbstripout
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:
-      - id: check-docstring-first
-      - id: check-json
-      - id: check-docstring-first
-      - id: check-executables-have-shebangs
-      - id: check-shebang-scripts-are-executable
+      # Checks for the existence of AWS secrets that you have set up with the AWS CLI.
       - id: detect-aws-credentials
+      #  Checks for the existence of private keys.
       - id: detect-private-key
+      # Replaces or checks mixed line ending.
       - id: mixed-line-ending
-      - id: debug-statements
-# Im not sure how to get this to work yet
-# - repo: local
-#   hooks:
-#     - id: Run tests
-#       name: Run tests
-#       entry: pytest
-#       language: system
-#       always_run: false
-#       args: [tests/]
+
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.3.1
+    hooks:
+      # A tool (and pre-commit hook) to automatically upgrade syntax for newer versions of the language.
+      - id: pyupgrade
+        args: [--py37-plus]
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: 6.0.0
+    hooks:
+      # Python code style checker
+      - id: flake8
+        additional_dependencies: [Flake8-pyproject]
+
+  - repo: https://github.com/PyCQA/pylint
+    rev: v2.16.3
+    hooks:
+      # Pylint analyses your code without actually running it.
+      # It checks for errors, enforces a coding standard, looks for code smells, and can make suggestions about how the code could be refactored.
+      - id: pylint
+        args:
+          # Ignore all files except aws_exporter
+          - "--ignore-path=^(?!.*aws_exporter).*"
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.0.1
+    hooks:
+      # Mypy is a static type checker for Python.
+      - id: mypy
+        files: ^aws_explorer/
+        args:
+          - --ignore-missing-imports
+          - --disable-error-code=annotation-unchecked
+          - --disable-error-code=import
+
+  - repo: local
+    hooks:
+      # Runs pytest, as a local hook
+      - id: pytest
+        name: pytest
+        entry: pytest
+        language: system
+        files: ^tests/

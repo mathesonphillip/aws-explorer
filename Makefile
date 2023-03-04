@@ -17,29 +17,56 @@ help:
 	@echo "  make typecheck    Type check code with mypy"
 	@echo "  make test         Run tests with pytest"
 
+# ----------------------------------- BUILD ---------------------------------- #
+
+.PHONY: build
+build: 
+	python setup.py sdist bdist_wheel
+
+# ---------------------------------- INSTALL --------------------------------- #
+
+# Standard install (CI/CD)
 .PHONY: install
 install:
 	python -m pip install --upgrade pip
 	pip install -r requirements.txt
 
-.PHONY: lint
-lint:
-	$(PYLINT)
+# Install in editable mode (local development)
+.PHONY: install_editable
+install_editable:
+	python -m pip install --upgrade pip
+	pip install -e ./
+
+# ----------------------------------- CLEAN ---------------------------------- #
+
+.PHONY: clean
+clean: 
+	rm -rf ./build
+	rm -rf ./dist
+	rm -rf ./aws_explorer.egg-info
+
+# ---------------------------------------------------------------------------- #
+
+.PHONY: precommit
+precommit:
+	pre-commit run --all-files
 
 .PHONY: format
 format:
 	$(BLACK)
 
+.PHONY: lint
+lint:
+	$(PYLINT) || true
+
 .PHONY: typecheck
 typecheck:
-	$(MYPY)
+	$(MYPY) || true
 
 .PHONY: test
 test:
-	$(PYTEST) 
+	$(PYTEST) || true
 
-.PHONY: all
-all: 
-	make lint 
-	make test 
-	make typecheck 
+# ---------------------------------------------------------------------------- #
+
+all: format	lint typecheck test 

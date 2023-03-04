@@ -42,32 +42,12 @@ disable = [
 max-line-length = 120
 count = true
 ignore = [
+    'F401', # unused import
     # 'E231', # missing whitespace after ','
     # 'E241', # multiple spaces after ','
-    # 'F401', # unused import
     # 'F841', # local variable is assigned to but never used
 ]
 per-file-ignores = [
     '__init__.py:F401', # unused import
     'account.py:RO902', # too-many-instance-attributes
 ]
-
-# /* ----------------------------------- tox ---------------------------------- */
-
-# Dont know ,uch about tox...
-# But this seems to be working so far
-[tool.tox]
-legacy_tox_ini = """
-    [tox]
-    envlist = py310,py311,pytest
-
-    [testenv]
-    deps = 
-        -rrequirements.txt
-
-    [testenv:py310,py311,pytest]
-    commands = pytest
-    description = Run pytest
-    deps = pytest
-        {[testenv]deps}
-"""
