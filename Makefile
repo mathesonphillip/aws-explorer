@@ -3,7 +3,7 @@ PYTHON = python
 PIP = pip
 FLAKE8 = flake8
 MYPY = mypy ./aws_explorer
-PYTEST = pytest --cov --exitfirst --disable-warnings --verbose --no-header --continue-on-collection-errors
+PYTEST = pytest --disable-warnings --verbose --no-header
 BLACK = black ./aws_explorer
 PYLINT = pylint --exit-zero --output-format colorized ./aws_explorer
 
