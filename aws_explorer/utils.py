@@ -1,7 +1,11 @@
+""" This module contains utility functions used by other modules."""
+
+
 import logging
 import sys
 from datetime import datetime
-from typing import Dict, List
+
+# from typing import Dict, List
 
 
 def get_logger(name):
@@ -14,7 +18,8 @@ def get_logger(name):
     console_handler.setLevel(logging.DEBUG)
 
     # create formatter and add it to the handlers
-    formatter = logging.Formatter("%(name)-20s %(levelname)-8s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+    formatter = logging.Formatter(
+        "%(name)-20s %(levelname)-8s %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
@@ -22,15 +27,21 @@ def get_logger(name):
     return logger
 
 
-def remove_timezones_from_object(data_object):
+def remove_timezones_from_object(data_object):  # pylint: disable=inconsistent-return-statements
+    """
+    This function is used to remove timezone information from a dictionary or list of dictionaries.
+    This is necessary for exporting to Excel, which does not support timezone information.
+    """
     if isinstance(data_object, dict):
         # If the value is a dictionary, recursively remove timezone from its
         # values
-        return {k: remove_timezones_from_object(v) for k, v in data_object.items()}  # type: ignore
+        # type: ignore
+        return {k: remove_timezones_from_object(v) for k, v in data_object.items()}
 
     if isinstance(data_object, list):
         # If the value is a list, recursively remove timezone from its items
-        return [remove_timezones_from_object(v) for v in data_object]  # type: ignore
+        # type: ignore
+        return [remove_timezones_from_object(v) for v in data_object]
 
     if isinstance(data_object, datetime):
         # If the value is a datetime with timezone information, convert it to a

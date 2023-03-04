@@ -1,3 +1,4 @@
+""" Class module for the IAMManager class, which is used to interact with the AWS IAM service."""
 from typing import Dict, List
 
 import boto3
@@ -14,6 +15,7 @@ class IAMManager:
 
     @property
     def users(self) -> List[Dict]:
+        """Return a list of IAM users"""
         result: List[Dict] = []
         for i in self.client.list_users()["Users"]:
             _user: Dict = {
@@ -32,6 +34,7 @@ class IAMManager:
 
     @property
     def groups(self) -> List[Dict]:
+        """Return a list of IAM groups"""
         result: List[Dict] = []
         for i in self.client.list_groups()["Groups"]:
             result.append({"Account": self.session.profile_name, **i})
@@ -39,6 +42,7 @@ class IAMManager:
 
     @property
     def roles(self) -> List[Dict]:
+        """Return a list of IAM roles"""
         result: List[Dict] = []
         for i in self.client.list_roles()["Roles"]:
             result.append({"Account": self.session.profile_name, **i})
@@ -46,18 +50,28 @@ class IAMManager:
 
     @property
     def policies(self) -> List[Dict]:
+        """Return a list of IAM policies"""
         result: List[Dict] = []
         for i in self.client.list_policies(Scope="Local")["Policies"]:
             result.append({"Account": self.session.profile_name, **i})
         return result
 
     def get_alias(self) -> str | None:
+        """Return the account alias"""
         result = self.client.list_account_aliases().get("AccountAliases")
         if not result:
             return None
         return result[0]
 
     def to_dict(self, filtered: bool = True) -> Dict[str, List[Dict]]:
+        """Return a dictionary of the service instance data
+
+        Args:
+            filtered (bool, optional): Whether to filter the data. Defaults to True.
+
+        Returns:
+            Dict[str, List[Dict]]: The service instance data
+        """
         if not filtered:
             return {
                 "Users": self.users,

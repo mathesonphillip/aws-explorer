@@ -1,5 +1,10 @@
+"""
+This module is used to manage a collection of AWS accounts.
+Mainly used so that i could export multiple accounts to a single export.
+"""
+
 from datetime import datetime
-from typing import Any, Dict, Iterator, List
+from typing import Dict, Iterator, List
 
 import pandas as pd
 from deepmerge import always_merger  # type: ignore
@@ -15,7 +20,7 @@ class Accounts:
         self.accounts = accounts
 
     def __iter__(self) -> Iterator[Account]:
-        self.index: int = 0
+        self.index: int = 0  # pylint: disable=attribute-defined-outside-init
         return self
 
     def __next__(self) -> Account:
@@ -27,7 +32,12 @@ class Accounts:
 
     # ---------------------------------------------------------------------------- #
 
-    def export(self, export_path="."):
+    def export(self, export_path=".") -> None:  # pylint: disable=too-many-locals
+        """
+        This method is used to export the accounts to a file.
+        All the accounts are merged into a single dictionary and then exported to Excel.
+
+        """
         data_dict: Dict | List = {}
         for a in self.accounts:
             # Get the data as a dictionary
@@ -49,8 +59,8 @@ class Accounts:
                         index=False,
                     )
 
-                    column_settings = [{"header": column}
-                                       for column in df.columns]
+                    column_settings: List[Dict[str, str]] = [
+                        {"header": column} for column in df.columns]
                     print(column_settings)
 
                     # Add the Excel table structure. Pandas will add the data.
@@ -64,10 +74,12 @@ class Accounts:
                     )
 
                     # Set the column width to the max length of the column header
-                    # for column in df:
-                    #     column_length = max(df[column].astype(str).map(len).max(), len(column))
-                    #     col_idx = df.columns.get_loc(column)
-                    #     writer.sheets[sheet_name].set_column(col_idx, col_idx, column_length)
+                    for column in df:
+                        column_length = max(df[column].astype(
+                            str).map(len).max(), len(column))
+                        col_idx = df.columns.get_loc(column)
+                        writer.sheets[sheet_name].set_column(
+                            col_idx, col_idx, column_length)
 
     def get_filename(self, prefix: str, extension: str) -> str:
         """This function is used to get the filename."""

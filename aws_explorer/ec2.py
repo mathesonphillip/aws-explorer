@@ -1,4 +1,5 @@
-from typing import Dict, List, Optional
+"""Class module for the EC2Manager class, which is used to interact with the AWS EC2 service."""
+from typing import Dict, List
 
 import boto3
 
@@ -14,6 +15,7 @@ class EC2Manager:
 
     @property
     def instances(self) -> List[Dict]:
+        """Return a list of EC2 instances"""
         result: List[Dict] = []
         for res in self.client.describe_instances()["Reservations"]:
             for j in res.get("Instances", []):
@@ -31,7 +33,8 @@ class EC2Manager:
                         _instance["Name"] = tag.get("Value")
 
                 for _ssm in (
-                    self.session.client("ssm").describe_instance_information().get("InstanceInformationList", [])
+                    self.session.client("ssm").describe_instance_information().get(
+                        "InstanceInformationList", [])
                 ):
                     if _ssm.get("InstanceId") == j.get("InstanceId"):
                         _instance["SSMManaged"] = True
@@ -49,6 +52,7 @@ class EC2Manager:
 
     @property
     def security_groups(self) -> List[Dict]:
+        """Return a list of EC2 security groups"""
         result: List[Dict] = []
         for i in self.client.describe_security_groups()["SecurityGroups"]:
             result.append({"Account": self.session.profile_name, **i})
@@ -56,6 +60,7 @@ class EC2Manager:
 
     @property
     def security_group_rules(self) -> List[Dict]:
+        """Return a list of EC2 security group rules"""
         result: List[Dict] = []
         for i in self.client.describe_security_group_rules()["SecurityGroupRules"]:
             _rules: Dict = {
@@ -72,9 +77,11 @@ class EC2Manager:
 
     @property
     def vpcs(self) -> List[Dict]:
+        """Return a list of EC2 VPCs"""
         result: List[Dict] = []
         for i in self.client.describe_vpcs()["Vpcs"]:
-            _vpc: Dict = {"Account": self.session.profile_name, "VpcName": None, **i}
+            _vpc: Dict = {"Account": self.session.profile_name,
+                          "VpcName": None, **i}
             for tag in i.get("Tags", []):
                 if tag.get("Key") == "Name":
                     _vpc["VpcName"] = tag.get("Value")
@@ -84,6 +91,7 @@ class EC2Manager:
 
     @property
     def subnets(self) -> List[Dict]:
+        """Return a list of EC2 subnets"""
         result: List[Dict] = []
         for i in self.client.describe_subnets()["Subnets"]:
             _subnet: Dict = {
@@ -109,6 +117,7 @@ class EC2Manager:
 
     @property
     def internet_gateways(self) -> List[Dict]:
+        """Return a list of EC2 internet gateways"""
         result: List[Dict] = []
         for i in self.client.describe_internet_gateways()["InternetGateways"]:
             result.append({"Account": self.session.profile_name, **i})
@@ -116,6 +125,7 @@ class EC2Manager:
 
     @property
     def route_tables(self) -> List[Dict]:
+        """Return a list of EC2 route tables"""
         result: List[Dict] = []
         for i in self.client.describe_route_tables()["RouteTables"]:
             result.append({"Account": self.session.profile_name, **i})
@@ -123,6 +133,7 @@ class EC2Manager:
 
     @property
     def network_acls(self) -> List[Dict]:
+        """Return a list of EC2 network ACLs"""
         result: List[Dict] = []
         for i in self.client.describe_network_acls()["NetworkAcls"]:
             result.append({"Account": self.session.profile_name, **i})
@@ -130,6 +141,7 @@ class EC2Manager:
 
     @property
     def network_interfaces(self) -> List[Dict]:
+        """Return a list of EC2 network interfaces"""
         result: List[Dict] = []
         for i in self.client.describe_network_interfaces()["NetworkInterfaces"]:
             result.append({"Account": self.session.profile_name, **i})
@@ -137,6 +149,7 @@ class EC2Manager:
 
     @property
     def volumes(self) -> List[Dict]:
+        """Return a list of EC2 volumes"""
         result: List[Dict] = []
         for i in self.client.describe_volumes()["Volumes"]:
             result.append({"Account": self.session.profile_name, **i})
@@ -144,6 +157,7 @@ class EC2Manager:
 
     @property
     def snapshots(self) -> List[Dict]:
+        """Return a list of EC2 snapshots"""
         result: List[Dict] = []
         for i in self.client.describe_snapshots(OwnerIds=["self"])["Snapshots"]:
             result.append({"Account": self.session.profile_name, **i})
@@ -151,13 +165,21 @@ class EC2Manager:
 
     @property
     def images(self) -> List[Dict]:
+        """Return a list of EC2 images"""
         result: List[Dict] = []
         for i in self.client.describe_images(Owners=["self"])["Images"]:
             result.append({"Account": self.session.profile_name, **i})
         return result
 
     def to_dict(self, filtered: bool = True) -> Dict[str, List[Dict]]:
-        """This method is used to convert the object to Dict."""
+        """Return a dictionary of the service instance data
+
+        Args:
+            filtered (bool, optional): Whether to filter the data. Defaults to True.
+
+        Returns:
+            Dict[str, List[Dict]]: The service instance data
+        """
         if not filtered:
             return {
                 "Instances": self.instances,

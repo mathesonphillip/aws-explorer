@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+"""
+AWS Explorer - A tool for exploring AWS resources
+__init__.py - Used to ensure that the modules are imported when the package is imported.
+
+"""
+
 
 from .account import Account
 from .accounts import Accounts
