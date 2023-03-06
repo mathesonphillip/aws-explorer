@@ -1,5 +1,5 @@
 """Class module for the CloudTrailManager class, which is used to interact with the AWS CloudTrail service."""
-from typing import Dict, List
+
 
 import boto3
 
@@ -7,6 +7,7 @@ from .utils import filter_and_sort_dict_list
 
 
 class CloudTrailManager:
+
     """This class is used to manage CloudTrail resources."""
 
     def __init__(self, session: boto3.Session) -> None:
@@ -14,21 +15,23 @@ class CloudTrailManager:
         self.client = self.session.client("cloudtrail")
 
     @property
-    def trails(self) -> List[Dict]:
-        """Return a list of CloudTrail trails"""
-        result: List[Dict] = []
-        for i in self.client.describe_trails()["trailList"]:
-            result.append({"Account": self.session.profile_name, **i})
+    def trails(self) -> list[dict]:
+        """Return a list of CloudTrail trails."""
+        result: list[dict] = []
+        for i in self.client.describe_trails()["traillist"]:
+            result.append({"session": self.session.profile_name, **i})
         return result
 
-    def to_dict(self, filtered: bool = True) -> Dict[str, List[Dict]]:
-        """Return a dictionary of the service instance data
+    def to_dict(self, filtered: bool = True) -> dict[str, list[dict]]:
+        """Return a dictionary of the service instance data.
 
         Args:
+        ----
             filtered (bool, optional): Whether to filter the data. Defaults to True.
 
         Returns:
-            Dict[str, List[Dict]]: The service instance data
+        -------
+            dict[str, list[dict]]: The service instance data
         """
         if not filtered:
             return {
@@ -38,7 +41,7 @@ class CloudTrailManager:
             "trails": filter_and_sort_dict_list(
                 self.trails,
                 [
-                    "Account",
+                    "session",
                     "Name",
                     "S3BucketName",
                     "S3KeyPrefix",

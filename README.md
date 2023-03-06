@@ -26,12 +26,12 @@ To use the `aws-explorer` package in your Jupyter Notebook, follow the code snip
 
 ```python
 #Import the modules
-from aws_explorer import Account
+from aws_explorer import session
 
-# You can then create an "Account" object
-dev = Account(profile_name='dev')
+# You can then create an "session" object
+dev = session(profile_name='dev')
 
-# You can then use the "Account" object to manage, query and report on the AWS resources
+# You can then use the "session" object to manage, query and report on the AWS resources
 instances = dev.ec2.instances
 buckets = dev.s3.buckets
 

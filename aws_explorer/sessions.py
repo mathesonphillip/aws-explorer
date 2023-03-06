@@ -1,29 +1,30 @@
-"""
-This module is used to manage a collection of AWS accounts.
+"""This module is used to manage a collection of AWS accounts.
 Mainly used so that i could export multiple accounts to a single export.
 """
 
 from datetime import datetime
-from typing import Dict, Iterator, List
+
+from collections.abc import Iterator
 
 import pandas as pd
 from deepmerge import always_merger  # type: ignore
 
-from .account import Account
+from .session import Session
 from .utils import remove_timezones_from_object
 
 
-class Accounts:
+class Sessions:
+
     """This class is used to manage a collection of AWS accounts."""
 
-    def __init__(self, accounts: List[Account]) -> None:
+    def __init__(self, accounts: list[Session]) -> None:
         self.accounts = accounts
 
-    def __iter__(self) -> Iterator[Account]:
+    def __iter__(self) -> Iterator[Session]:
         self.index: int = 0  # pylint: disable=attribute-defined-outside-init
         return self
 
-    def __next__(self) -> Account:
+    def __next__(self) -> Session:
         if self.index < len(self.accounts):
             result = self.accounts[self.index]
             self.index += 1
@@ -33,12 +34,11 @@ class Accounts:
     # ---------------------------------------------------------------------------- #
 
     def export(self, export_path=".") -> None:  # pylint: disable=too-many-locals
-        """
-        This method is used to export the accounts to a file.
+        """This method is used to export the accounts to a file.
         All the accounts are merged into a single dictionary and then exported to Excel.
 
         """
-        data_dict: Dict | List = {}
+        data_dict: dict | list = {}
         for a in self.accounts:
             # Get the data as a dictionary
             account_data = remove_timezones_from_object(a.to_dict())
@@ -59,9 +59,7 @@ class Accounts:
                         index=False,
                     )
 
-                    column_settings: List[Dict[str, str]] = [
-                        {"header": column} for column in df.columns
-                    ]
+                    column_settings: list[dict[str, str]] = [{"header": column} for column in df.columns]
                     print(column_settings)
 
                     # Add the Excel table structure. Pandas will add the data.
@@ -76,13 +74,9 @@ class Accounts:
 
                     # Set the column width to the max length of the column header
                     for column in df:
-                        column_length = max(
-                            df[column].astype(str).map(len).max(), len(column)
-                        )
+                        column_length = max(df[column].astype(str).map(len).max(), len(column))  # type: ignore
                         col_idx = df.columns.get_loc(column)
-                        writer.sheets[sheet_name].set_column(
-                            col_idx, col_idx, column_length
-                        )
+                        writer.sheets[sheet_name].set_column(col_idx, col_idx, column_length)
 
     def get_filename(self, prefix: str, extension: str) -> str:
         """This function is used to get the filename."""

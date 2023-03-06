@@ -1,28 +1,27 @@
 #!/usr/bin/env python
 
 # Imports
-import json
 
-from aws_explorer import Account
+from aws_explorer import Session
 
-account = Account()
+session = Session()
 
-print(account)
+print(session)
 
 
-# print(type(account))
+# print(type(session))
 
-# Print the account object
+# Print the session object
 # print("")
-# print(f"Raw: { account }")
-# print(f"Account: { account.id }")
-# print(f"User: { account.user }")
+# print(f"Raw: { session }")
+# print(f"session: { session.id }")
+# print(f"User: { session.user }")
 
-# Print account resource detaiuls
+# Print session resource detaiuls
 # print("")
-# print(account.iam.alias)
-# print(account.s3.buckets)
-# print(account.iam.users)
-print(account.__dict__)
+# print(session.iam.alias)
+# print(session.s3.buckets)
+# print(session.iam.users)
+print(session.__dict__)
 
 # ---------------------------------------------------------------------------- #

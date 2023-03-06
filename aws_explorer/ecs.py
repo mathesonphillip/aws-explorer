@@ -1,5 +1,5 @@
 """Class module for the ECSManager class, which is used to interact with the AWS ECS service."""
-from typing import Dict, List
+
 
 import boto3
 
@@ -7,6 +7,7 @@ from .utils import filter_and_sort_dict_list
 
 
 class ECSManager:
+
     """This class is used to manage ECS resources."""
 
     def __init__(self, session: boto3.Session) -> None:
@@ -14,21 +15,23 @@ class ECSManager:
         self.client = self.session.client("ecs")
 
     @property
-    def clusters(self) -> List[Dict]:
-        """Return a list of ECS clusters"""
-        result: List = []
+    def clusters(self) -> list[dict]:
+        """Return a list of ECS clusters."""
+        result: list = []
         for i in self.client.describe_clusters()["clusters"]:
-            result.append({"Account": self.session.profile_name, **i})
+            result.append({"session": self.session.profile_name, **i})
         return result
 
-    def to_dict(self, filtered: bool = True) -> Dict[str, List[Dict]]:
-        """Return a dictionary of the service instance data
+    def to_dict(self, filtered: bool = True) -> dict[str, list[dict]]:
+        """Return a dictionary of the service instance data.
 
         Args:
+        ----
             filtered (bool, optional): Whether to filter the data. Defaults to True.
 
         Returns:
-            Dict[str, List[Dict]]: The service instance data
+        -------
+            dict[str, list[dict]]: The service instance data
         """
         if not filtered:
             return {

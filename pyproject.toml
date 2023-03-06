@@ -8,46 +8,6 @@ authors     = [{ name = "Phillip Matheson", email = "matheson.phillip@gmail.com"
 requires      = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
-# /* ---------------------------------- mypy ---------------------------------- */
-
-
-#/* --------------------------------- pytest --------------------------------- */
-
-
-[tool.pytest.ini_options]
-python_files = "test_*.py *.test.py"
-
-# /* --------------------------------- pylint --------------------------------- */
-
-[tool.pylint]
-max-line-length = 120
-disable = [
-    "C0103", # (invalid-name)
-    "R0801", # (duplicate-code)
-    # "C0114", # (missing-module-docstring)
-    # "C0115", # (missing-class-docstring)
-    # "C0116", # (missing-function-docstring)
-    # "R0902", # (too-many-instance-attributes)
-    # "R0903", # (too-few-public-methods)
-    # "R0913", # (too-many-arguments)
-    # "W0105", # (pointless-string-statement)
-    "W0611", # (unused-import)
-    # "W1203", # (logging-fstring-interpolation)
-]
-
-# /* --------------------------------- flake8 --------------------------------- */
-
-# Using a 3rd party tool to make flake8 work with this file
-[tool.flake8]
-max-line-length = 120
-count = true
-ignore = [
-    'F401', # unused import
-    # 'E231', # missing whitespace after ','
-    # 'E241', # multiple spaces after ','
-    # 'F841', # local variable is assigned to but never used
-]
-per-file-ignores = [
-    '__init__.py:F401', # unused import
-    'account.py:RO902', # too-many-instance-attributes
-]
+[tool.black]
+line-length = 150
+target-version = ['py310']

@@ -3,19 +3,15 @@ PYTHON = python
 PIP = pip
 FLAKE8 = flake8
 MYPY = mypy ./aws_explorer
-PYTEST = pytest --disable-warnings --verbose --no-header
+PYTEST = pytest --disable-warnings --verbose --no-header 
 BLACK = black ./aws_explorer
-PYLINT = pylint --exit-zero --output-format colorized ./aws_explorer
+# PYLINT = pylint --persistent=yes --output-format colorized ./aws_explorer
+PYLINT = pylint --jobs=4 --output-format colorized ./aws_explorer
 
-# Define targets
-.DEFAULT_GOAL := help
+# ----------------------------------- ALL ----------------------------------- #
 
-.PHONY: help
-help:
-	@echo "Usage:"
-	@echo "  make lint         Lint code with flake8"
-	@echo "  make typecheck    Type check code with mypy"
-	@echo "  make test         Run tests with pytest"
+# DEFAULT: Run all checks; Helpful to have closeby when developing
+all: format	lint typecheck test 
 
 # ----------------------------------- BUILD ---------------------------------- #
 
@@ -57,16 +53,12 @@ format:
 
 .PHONY: lint
 lint:
-	$(PYLINT) || true
+	@$(PYLINT)
 
 .PHONY: typecheck
 typecheck:
-	$(MYPY) || true
+	@mypy --follow-imports=silent --ignore-missing-imports --no-strict-optional --no-warn-no-return --no-warn-unused-ignores --show-column-numbers --pretty --no-implicit-optional --incremental ./aws_explorer
 
 .PHONY: test
 test:
-	$(PYTEST) || true
-
-# ---------------------------------------------------------------------------- #
-
-all: format	lint typecheck test 
+	@pytest --disable-warnings --verbose --no-header

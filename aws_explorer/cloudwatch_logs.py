@@ -1,14 +1,13 @@
 """ Class module for the CloudWatchLogsManager class, which is used to interact with the AWS CloudWatchLogs service. """
 
 
-from typing import Dict, List
-
 import boto3
 
 from .utils import filter_and_sort_dict_list
 
 
 class CloudWatchLogsManager:
+
     """This class is used to manage CloudWatchLogs resources."""
 
     def __init__(self, session: boto3.Session) -> None:
@@ -16,21 +15,21 @@ class CloudWatchLogsManager:
         self.client = self.session.client("logs")
 
     @property
-    def log_groups(self) -> List[Dict]:
-        """Return a list of cloudwatch log groups and their properties"""
-        result: List[Dict] = []
+    def log_groups(self) -> list[dict]:
+        """Return a list of cloudwatch log groups and their properties."""
+        result: list[dict] = []
         for i in self.client.describe_log_groups()["logGroups"]:
-            result.append({"Account": self.session.profile_name, **i})
+            result.append({"session": self.session.profile_name, **i})
         return result
 
-    def query_vpc_flow_logs(self, log_group, start_time, end_time):
-        """
-        Execute a CloudWatch Insights query #WIP
+    # def query_vpc_flow_logs(self, log_group, start_time, end_time):
+    #     """
+    #     Execute a CloudWatch Insights query #WIP
 
-        This is an example of how to execute a CloudWatch Insights query.
-        NOTE: Need to flesh this workflow out
-        """
-        raise NotImplementedError
+    #     This is an example of how to execute a CloudWatch Insights query.
+    #     NOTE: Need to flesh this workflow out
+    #     """
+    #     raise NotImplementedError
 
     #     # create the CloudWatch Insights query
     #     query = "fields @timestamp, @message " "| sort @timestamp desc"
@@ -74,14 +73,16 @@ class CloudWatchLogsManager:
 
     #     return results
 
-    def to_dict(self, filtered: bool = True) -> Dict[str, List[Dict]]:
-        """Return a dictionary of the service instance data
+    def to_dict(self, filtered: bool = True) -> dict[str, list[dict]]:
+        """Return a dictionary of the service instance data.
 
         Args:
+        ----
             filtered (bool, optional): Whether to filter the data. Defaults to True.
 
         Returns:
-            Dict[str, List[Dict]]: The service instance data
+        -------
+            dict[str, list[dict]]: The service instance data
         """
         if not filtered:
             return {
@@ -92,7 +93,7 @@ class CloudWatchLogsManager:
             "LogGroups": filter_and_sort_dict_list(
                 self.log_groups,
                 [
-                    "Account",
+                    "session",
                     "logGroupName",
                     "storedBytes",
                     "retentionInDays",

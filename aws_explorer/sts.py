@@ -1,33 +1,36 @@
 """Class module for the STSManager class, which is used to interact with the AWS STS service."""
 
-
-from typing import Dict
-
 import boto3
+from functools import cached_property
+from collections import namedtuple
+from .utils import get_logger
+
+STSRepr = namedtuple("STSRepr", ["account_id", "user_id", "arn"])
+
+
+logger = get_logger(__name__)
 
 
 class STSManager:
+
     """This class is used to manage STS resources."""
 
     def __init__(self, session: boto3.Session) -> None:
+        logger.debug(f"Creating STSManager for session {session.profile_name}")
+
         self.session = session
         self.client = self.session.client("sts")
 
-    @property
-    def get_identity(self) -> object:
+    @cached_property
+    def identity(self) -> object:
         """Return the identity of the caller. Good for confirming the everything is working."""
-        return self.client.get_caller_identity()
+        response = self.client.get_caller_identity()
 
-    def to_dict(self, filtered: bool = True) -> Dict[str, object]:
-        """Return a dictionary of the service instance data
+        return STSRepr(
+            account_id=response["Account"],
+            user_id=response["UserId"],
+            arn=response["Arn"],
+        )
 
-        Args:
-            filtered (bool, optional): Whether to filter the data. Defaults to True.
-
-        Returns:
-            Dict[str, List[Dict]]: The service instance data
-        """
-        if not filtered:
-            return {"Identity": self.get_identity}
-
-        return {"Identity": self.get_identity}
+    def __repr__(self) -> str:
+        return f"<STSManager session={self.session.profile_name}>"

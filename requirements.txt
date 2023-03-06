@@ -27,3 +27,5 @@ pytest==7.2.1
 PyYAML==6.0
 setuptools==65.5.0
 types-PyYAML==6.0.12.8
+
+# python-dotenv-1.0.0

@@ -6,8 +6,8 @@ __init__.py - Used to ensure that the modules are imported when the package is i
 """
 
 
-from .account import Account
-from .accounts import Accounts
+from .session import Session
+from .sessions import Sessions
 from .backup import BackupManager
 from .cloudformation import CloudFormationManager
 from .cloudtrail import CloudTrailManager

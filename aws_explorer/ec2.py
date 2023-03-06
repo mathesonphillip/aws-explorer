@@ -1,5 +1,5 @@
 """Class module for the EC2Manager class, which is used to interact with the AWS EC2 service."""
-from typing import Dict, List
+
 
 import boto3
 
@@ -7,6 +7,7 @@ from .utils import filter_and_sort_dict_list
 
 
 class EC2Manager:
+
     """This class is used to manage EC2 resources."""
 
     def __init__(self, session: boto3.Session) -> None:
@@ -14,13 +15,13 @@ class EC2Manager:
         self.client = self.session.client("ec2")
 
     @property
-    def instances(self) -> List[Dict]:
-        """Return a list of EC2 instances"""
-        result: List[Dict] = []
+    def instances(self) -> list[dict]:
+        """Return a list of EC2 instances."""
+        result: list[dict] = []
         for res in self.client.describe_instances()["Reservations"]:
             for j in res.get("Instances", []):
-                _instance: Dict = {
-                    "Account": self.session.profile_name,
+                _instance: dict = {
+                    "session": self.session.profile_name,
                     "Name": None,
                     "SSMManaged": False,
                     "VpcName": False,
@@ -32,11 +33,7 @@ class EC2Manager:
                     if tag.get("Key") == "Name":
                         _instance["Name"] = tag.get("Value")
 
-                for _ssm in (
-                    self.session.client("ssm")
-                    .describe_instance_information()
-                    .get("InstanceInformationList", [])
-                ):
+                for _ssm in self.session.client("ssm").describe_instance_information().get("InstanceInformationList", []):
                     if _ssm.get("InstanceId") == j.get("InstanceId"):
                         _instance["SSMManaged"] = True
 
@@ -52,20 +49,20 @@ class EC2Manager:
         return result
 
     @property
-    def security_groups(self) -> List[Dict]:
-        """Return a list of EC2 security groups"""
-        result: List[Dict] = []
+    def security_groups(self) -> list[dict]:
+        """Return a list of EC2 security groups."""
+        result: list[dict] = []
         for i in self.client.describe_security_groups()["SecurityGroups"]:
-            result.append({"Account": self.session.profile_name, **i})
+            result.append({"session": self.session.profile_name, **i})
         return result
 
     @property
-    def security_group_rules(self) -> List[Dict]:
-        """Return a list of EC2 security group rules"""
-        result: List[Dict] = []
+    def security_group_rules(self) -> list[dict]:
+        """Return a list of EC2 security group rules."""
+        result: list[dict] = []
         for i in self.client.describe_security_group_rules()["SecurityGroupRules"]:
-            _rules: Dict = {
-                "Account": self.session.profile_name,
+            _rules: dict = {
+                "session": self.session.profile_name,
                 "GroupName": None,
                 **i,
             }
@@ -77,11 +74,11 @@ class EC2Manager:
         return result
 
     @property
-    def vpcs(self) -> List[Dict]:
-        """Return a list of EC2 VPCs"""
-        result: List[Dict] = []
+    def vpcs(self) -> list[dict]:
+        """Return a list of EC2 VPCs."""
+        result: list[dict] = []
         for i in self.client.describe_vpcs()["Vpcs"]:
-            _vpc: Dict = {"Account": self.session.profile_name, "VpcName": None, **i}
+            _vpc: dict = {"session": self.session.profile_name, "VpcName": None, **i}
             for tag in i.get("Tags", []):
                 if tag.get("Key") == "Name":
                     _vpc["VpcName"] = tag.get("Value")
@@ -90,12 +87,12 @@ class EC2Manager:
         return result
 
     @property
-    def subnets(self) -> List[Dict]:
-        """Return a list of EC2 subnets"""
-        result: List[Dict] = []
+    def subnets(self) -> list[dict]:
+        """Return a list of EC2 subnets."""
+        result: list[dict] = []
         for i in self.client.describe_subnets()["Subnets"]:
-            _subnet: Dict = {
-                "Account": self.session.profile_name,
+            _subnet: dict = {
+                "session": self.session.profile_name,
                 "SubnetName": None,
                 "VpcName": None,
                 **i,
@@ -111,74 +108,76 @@ class EC2Manager:
                     _subnet["SubnetName"] = tag.get("Value")
                     break
 
-            result.append({"Account": self.session.profile_name, **i})
+            result.append({"session": self.session.profile_name, **i})
 
         return result
 
     @property
-    def internet_gateways(self) -> List[Dict]:
-        """Return a list of EC2 internet gateways"""
-        result: List[Dict] = []
+    def internet_gateways(self) -> list[dict]:
+        """Return a list of EC2 internet gateways."""
+        result: list[dict] = []
         for i in self.client.describe_internet_gateways()["InternetGateways"]:
-            result.append({"Account": self.session.profile_name, **i})
+            result.append({"session": self.session.profile_name, **i})
         return result
 
     @property
-    def route_tables(self) -> List[Dict]:
-        """Return a list of EC2 route tables"""
-        result: List[Dict] = []
+    def route_tables(self) -> list[dict]:
+        """Return a list of EC2 route tables."""
+        result: list[dict] = []
         for i in self.client.describe_route_tables()["RouteTables"]:
-            result.append({"Account": self.session.profile_name, **i})
+            result.append({"session": self.session.profile_name, **i})
         return result
 
     @property
-    def network_acls(self) -> List[Dict]:
-        """Return a list of EC2 network ACLs"""
-        result: List[Dict] = []
+    def network_acls(self) -> list[dict]:
+        """Return a list of EC2 network ACLs."""
+        result: list[dict] = []
         for i in self.client.describe_network_acls()["NetworkAcls"]:
-            result.append({"Account": self.session.profile_name, **i})
+            result.append({"session": self.session.profile_name, **i})
         return result
 
     @property
-    def network_interfaces(self) -> List[Dict]:
-        """Return a list of EC2 network interfaces"""
-        result: List[Dict] = []
+    def network_interfaces(self) -> list[dict]:
+        """Return a list of EC2 network interfaces."""
+        result: list[dict] = []
         for i in self.client.describe_network_interfaces()["NetworkInterfaces"]:
-            result.append({"Account": self.session.profile_name, **i})
+            result.append({"session": self.session.profile_name, **i})
         return result
 
     @property
-    def volumes(self) -> List[Dict]:
-        """Return a list of EC2 volumes"""
-        result: List[Dict] = []
+    def volumes(self) -> list[dict]:
+        """Return a list of EC2 volumes."""
+        result: list[dict] = []
         for i in self.client.describe_volumes()["Volumes"]:
-            result.append({"Account": self.session.profile_name, **i})
+            result.append({"session": self.session.profile_name, **i})
         return result
 
     @property
-    def snapshots(self) -> List[Dict]:
-        """Return a list of EC2 snapshots"""
-        result: List[Dict] = []
+    def snapshots(self) -> list[dict]:
+        """Return a list of EC2 snapshots."""
+        result: list[dict] = []
         for i in self.client.describe_snapshots(OwnerIds=["self"])["Snapshots"]:
-            result.append({"Account": self.session.profile_name, **i})
+            result.append({"session": self.session.profile_name, **i})
         return result
 
     @property
-    def images(self) -> List[Dict]:
-        """Return a list of EC2 images"""
-        result: List[Dict] = []
+    def images(self) -> list[dict]:
+        """Return a list of EC2 images."""
+        result: list[dict] = []
         for i in self.client.describe_images(Owners=["self"])["Images"]:
-            result.append({"Account": self.session.profile_name, **i})
+            result.append({"session": self.session.profile_name, **i})
         return result
 
-    def to_dict(self, filtered: bool = True) -> Dict[str, List[Dict]]:
-        """Return a dictionary of the service instance data
+    def to_dict(self, filtered: bool = True) -> dict[str, list[dict]]:
+        """Return a dictionary of the service instance data.
 
         Args:
+        ----
             filtered (bool, optional): Whether to filter the data. Defaults to True.
 
         Returns:
-            Dict[str, List[Dict]]: The service instance data
+        -------
+            dict[str, list[dict]]: The service instance data
         """
         if not filtered:
             return {
@@ -200,7 +199,7 @@ class EC2Manager:
             "Instances": filter_and_sort_dict_list(
                 self.instances,
                 [
-                    "Account",
+                    "session",
                     "InstanceId",
                     "Name",
                     "SSMManaged",
@@ -220,7 +219,7 @@ class EC2Manager:
             "SecurityGroups": filter_and_sort_dict_list(
                 self.security_groups,
                 [
-                    "Account",
+                    "session",
                     "GroupId",
                     "GroupName",
                     "Description",
@@ -230,7 +229,7 @@ class EC2Manager:
             "SecurityGroupRules": filter_and_sort_dict_list(
                 self.security_group_rules,
                 [
-                    "Account",
+                    "session",
                     "SecurityGroupRuleId",
                     "IsEgress",
                     "IpProtocol",
@@ -238,7 +237,7 @@ class EC2Manager:
                     "ToPort",
                     "CidrIpv4",
                     "CidrIpv6",
-                    "PrefixListId",
+                    "PrefixlistId",
                     "ReferencedGroupInfo",
                     "SecurityGroupName",
                     "Description",
@@ -247,7 +246,7 @@ class EC2Manager:
             "Vpcs": filter_and_sort_dict_list(
                 self.vpcs,
                 [
-                    "Account",
+                    "session",
                     "VpcId",
                     "VpcName",
                     "CidrBlock",
@@ -261,7 +260,7 @@ class EC2Manager:
             "Subnets": filter_and_sort_dict_list(
                 self.subnets,
                 [
-                    "Account",
+                    "session",
                     "VpcId",
                     "VpcName",
                     "SubnetName",
@@ -278,7 +277,7 @@ class EC2Manager:
             "InternetGateways": filter_and_sort_dict_list(
                 self.internet_gateways,
                 [
-                    "Account",
+                    "session",
                     "InternetGatewayId",
                     "Attachments",
                     "Tags",
@@ -287,7 +286,7 @@ class EC2Manager:
             "RouteTables": filter_and_sort_dict_list(
                 self.route_tables,
                 [
-                    "Account",
+                    "session",
                     "VpcId",
                     "RouteTableId",
                     "Routes",
@@ -298,7 +297,7 @@ class EC2Manager:
             "NetworkAcls": filter_and_sort_dict_list(
                 self.network_acls,
                 [
-                    "Account",
+                    "session",
                     "NetworkAclId",
                     "VpcId",
                     "IsDefault",
@@ -310,7 +309,7 @@ class EC2Manager:
             "NetworkInterfaces": filter_and_sort_dict_list(
                 self.network_interfaces,
                 [
-                    "Account",
+                    "session",
                     "NetworkInterfaceId",
                     "PrivateIpAddress",
                     "InterfaceType",
@@ -331,7 +330,7 @@ class EC2Manager:
             "Volumes": filter_and_sort_dict_list(
                 self.volumes,
                 [
-                    "Account",
+                    "session",
                     "VolumeId",
                     "AvailabilityZone",
                     "VolumeType",
@@ -347,7 +346,7 @@ class EC2Manager:
             "Snapshots": filter_and_sort_dict_list(
                 self.snapshots,
                 [
-                    "Account",
+                    "session",
                     "SnapshotId",
                     "State",
                     "Progress",
@@ -362,7 +361,7 @@ class EC2Manager:
             "Images": filter_and_sort_dict_list(
                 self.images,
                 [
-                    "Account",
+                    "session",
                     "Architecture",
                     "Description",
                     "ImageType",

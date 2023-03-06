@@ -1,53 +1,43 @@
-import os
-
+import logging
 import pytest
-from aws_explorer import Account
+from aws_explorer.session import Session
 
-AWS_DEFAULT_REGION = "ap-southeast-2"
+from tests.constants import CREDENTIAL_FILE_CONTENTS, PROFILE
+# ---------------------------------------------------------------------------- #
 
-AWS_ACCESS_KEY_ID = "AKIAIOSFODNN7EXAMPLE"
-AWS_SECRET_ACCESS_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
-
-CREDENTIALS_CONTENT = f"""
-[default]
-aws_access_key_id     = AKIAIOSFOEAWSDEFAULT
-aws_secret_access_key = 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
-region                = {AWS_DEFAULT_REGION}
-
-[aws-exporter]
-aws_access_key_id     = AKIAIOSFOAWSEXPORTER
-aws_secret_access_key = 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
-region                = {AWS_DEFAULT_REGION}
-"""
-
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.WARNING)
 
 # ---------------------------------------------------------------------------- #
-# Fixture that creates a temporary credentials file and returns the path
+
 @pytest.fixture(scope="session")
 def credentials_path(tmp_path_factory):
     """Create a temporary credentials file and return the path."""
+
+    logger.info("Generating temporary credentials file")
+
     path = tmp_path_factory.mktemp("data") / "credentials"
-    path.write_text(CREDENTIALS_CONTENT)
+    path.write_text(CREDENTIAL_FILE_CONTENTS)
+
     yield path
 
+    logger.info("Finished with temporary credentials file")
 
-@pytest.fixture(autouse=True)
-def account(monkeypatch, credentials_path):
-    """Mocked AWS Credentials for moto."""
-    # Ovewrite the environment variables with fail-safe values
-    os.environ["AWS_ACCESS_KEY_ID"] = "aws-exporter"
-    os.environ["AWS_SECRET_ACCESS_KEY"] = "aws-exporter"
-    os.environ["AWS_SECURITY_TOKEN"] = "aws-exporter"
-    os.environ["AWS_SESSION_TOKEN"] = "aws-exporter"
-    os.environ["AWS_DEFAULT_REGION"] = "ap-southeast-2"
+@pytest.fixture()
+def session(monkeypatch, credentials_path):
+    """
+    Create a session using the mocked credentials file
+    Where applicable all tests should use this fixture to ensure mock credentials are used.
+    """
+
+    logger.warning("Using mocked AWS Credentials")
 
     # Monkeypatch the environment variables for AWS_SHARED_CREDENTIALS_FILE for fail-safe
     monkeypatch.setenv("AWS_SHARED_CREDENTIALS_FILE", credentials_path.as_posix())
-    print("Monkeypatched AWS_SHARED_CREDENTIALS_FILE")
 
-    # Monkeypatch envvar for MOTO_ACCOUNT_ID, so i know what im testing
-    monkeypatch.setenv("MOTO_ACCOUNT_ID", "111111111111")
+    # Create the session
+    session = Session(profile=PROFILE, region="us-east-1")
+    
+    yield session
 
-    _account = Account(profile="aws-exporter", region="ap-southeast-2")
-
-    yield _account
+    logger.info("Finished with mocked AWS Credentials")

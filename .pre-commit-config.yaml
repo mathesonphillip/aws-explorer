@@ -26,12 +26,11 @@ repos:
       - id: pyupgrade
         args: [--py37-plus]
 
-  - repo: https://github.com/PyCQA/flake8
-    rev: 6.0.0
-    hooks:
-      # Python code style checker
-      - id: flake8
-        additional_dependencies: [Flake8-pyproject]
+  # - repo: https://github.com/PyCQA/flake8
+  #   rev: 6.0.0
+  #   hooks:
+  #     # Python code style checker
+  #     - id: flake8
 
   - repo: https://github.com/PyCQA/pylint
     rev: v2.16.3
@@ -43,22 +42,22 @@ repos:
           # Ignore all files except aws_exporter
           - "--ignore-path=^(?!.*aws_exporter).*"
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.0.1
-    hooks:
-      # Mypy is a static type checker for Python.
-      - id: mypy
-        files: ^aws_explorer/
-        args:
-          - --ignore-missing-imports
-          - --disable-error-code=annotation-unchecked
-          - --disable-error-code=import
+  # - repo: https://github.com/pre-commit/mirrors-mypy
+  #   rev: v1.0.1
+  #   hooks:
+  #     # Mypy is a static type checker for Python.
+  #     - id: mypy
+  #       files: ^aws_explorer/
+  #       args:
+  #         - --ignore-missing-imports
+  #         - --disable-error-code=annotation-unchecked
+  #         - --disable-error-code=import
 
-  - repo: local
-    hooks:
-      # Runs pytest, as a local hook
-      - id: pytest
-        name: pytest
-        entry: pytest
-        language: system
-        files: ^tests/
+  # - repo: local
+  #   hooks:
+  #     # Runs pytest, as a local hook
+  #     - id: pytest
+  #       name: pytest
+  #       entry: pytest
+  #       language: system
+  #       files: ^tests/
