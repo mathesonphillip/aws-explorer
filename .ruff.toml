@@ -16,6 +16,12 @@ ignore = [
     "D211", # no blank lines allowed before class docstring
     "D210", # no whitespaces allowed surrounding docstring text
     "D202", # no blank lines allowed after function docstring
+    "D101", # missing docstring in public class
+    "D102", # missing docstring in public method
+    "D107", # missing docstring in __init__
+    "W293", # blank line contains whitespace (Just ignore for vscode autoformat)
+
+
 ]
 
 

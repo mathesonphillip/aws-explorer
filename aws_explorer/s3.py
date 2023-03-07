@@ -2,48 +2,64 @@
 
 
 from functools import cached_property
-import boto3
+from .types import Bucket
+from .utils import get_logger
 
 
 class S3Manager:
 
     """This class is used to manage S3 resources."""
 
-    def __init__(self, session: boto3.Session) -> None:
-        self.session = session
-        self.client = self.session.client("s3")
+    def __init__(self, session) -> None:
+        self.parent = session
+        self.client = self.parent._session.client("s3")
+        self._resources: list[str] = [
+            "buckets",
+        ]
 
     @cached_property
-    def buckets(self) -> list[dict]:
+    def buckets(self) -> list[Bucket]:
         """Return a list of S3 buckets."""
-        result: list = []
+        print("Getting buckets")
 
-        return result
+        buckets: list[Bucket] = []
+        for bucket in self.client.list_buckets()["Buckets"]:
+            b = Bucket.parse_obj(bucket)
+            b.location = self._get_bucket_location(b.name)
+            b.encryption = self._get_bucket_encryption(b.name)
 
-    def __repr__(self) -> str:
-        return f"<S3Manager session={self.session.profile_name}>"
+            buckets.append(b)
 
-    # def to_dict(self, filtered: bool = True) -> dict[str, list[dict]]:
-    #     """Return a dictionary of the service instance data
+        return buckets
 
-    #     Args:
-    #         filtered (bool, optional): Whether to filter the data. Defaults to True.
+    def _get_bucket_location(self, bucket_name: str) -> str:
+        """Return the location of a bucket."""
+        print("Getting bucket location")
+        return self.client.get_bucket_location(Bucket=bucket_name)["LocationConstraint"]
 
-    #     Returns:
-    #         dict[str, list[dict]]: The service instance data
-    #     """
-    #     if not filtered:
-    #         return {"Buckets": self.buckets}
+    def _get_bucket_encryption(self, bucket_name: str) -> str:
+        """Return the encryption of a bucket."""
+        print("Getting bucket encryption")
 
-    #     return {
-    #         "Buckets": filter_and_sort_dict_list(
-    #             self.buckets,
-    #             [
-    #                 "session",
-    #                 "Name",
-    #                 "Location",
-    #                 "Encryption",
-    #                 "CreationDate",
-    #             ],
-    #         )
-    #     }
+        # Need to call the api as cant seem to access data from the session object
+        account_id = self.parent.sts.identity.account_id
+
+        encryption = self.client.get_bucket_encryption(
+            Bucket=bucket_name,
+            ExpectedBucketOwner=account_id,
+        )["ServerSideEncryptionConfiguration"]
+
+        return encryption
+
+    def export(self):
+        print("Exporting S3 resources...")
+        export_data = {}
+        for resource_type in self._resources:
+            print(f"Exporting {resource_type}...")
+
+            export_data[resource_type] = []
+            for i in resource_type:
+                resource_data = getattr(self, resource_type)
+                for resource in resource_data:
+                    export_data[resource_type].append(resource.dict(exclude_none=True))
+        return export_data

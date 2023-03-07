@@ -9,5 +9,5 @@ requires      = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.black]
-line-length = 150
+line-length    = 150
 target-version = ['py310']

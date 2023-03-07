@@ -1,11 +1,8 @@
 """ Class module for the IAMManager class, which is used to interact with the AWS IAM service."""
 
-from __future__ import annotations
-
-
+from .types import User, Group, AccessKey, Policy, MFADevice, Role
+from functools import cached_property
 import boto3
-
-from .utils import filter_and_sort_dict_list
 
 
 class IAMManager:
@@ -13,120 +10,95 @@ class IAMManager:
     """This class is used to manage IAM resources."""
 
     def __init__(self, session: boto3.Session) -> None:
-        self.session = session
-        self.client = self.session.client("iam")
+        self.parent = session
+        self.client = self.parent._session.client("iam")
+        self._resources: list[str] = [
+            "users",
+            "groups",
+            "policies",
+            "roles",
+        ]
 
-    @property
-    def users(self) -> list[dict]:
+    @cached_property
+    def users(self) -> list[User]:
+        print("Getting users")
         """Return a list of IAM users."""
-        result: list[dict] = []
-        for i in self.client.list_users()["Users"]:
-            _user: dict = {
-                "session": self.session.profile_name,
-                "Groups": self.client.list_groups_for_user(UserName=i["UserName"]).get("Groups", []),
-                "Policies": self.client.list_user_policies(UserName=i["UserName"]).get("PolicyNames", []),
-                "AttachedPolicies": self.client.list_attached_user_policies(UserName=i["UserName"]).get("AttachedPolicies", []),
-                "AccessKeys": self.client.list_access_keys(UserName=i["UserName"]).get("AccessKeyMetadata", []),
-                "MFADevices": self.client.list_mfa_devices(UserName=i["UserName"]).get("MFADevices", []),
-                **i,
-            }
-            result.append(_user)
-        return result
+        users: list[User] = []
+        for u in self.client.list_users()["Users"]:
+            # Create a User object
+            user = User.parse_obj(u)
 
-    @property
-    def groups(self) -> list[dict]:
+            # Get the groups the user is in and add them to the user object
+            groups = self.client.list_groups_for_user(UserName=user.user_name).get("Groups", [])
+            user.groups.append([Group.parse_obj(g) for g in groups])
+
+            # Get the policies the user has and add them to the user object
+            policies = self.client.list_user_policies(UserName=user.user_name).get("PolicyNames", [])
+            user.policies.append([Policy.parse_obj(p) for p in policies])
+
+            # Get the attached policies the user has and add them to the user object
+            # attached_policies = self.client.list_attached_user_policies(UserName=user.user_name).get("AttachedPolicies", [])
+            # user.attached_policies.append([AttachedPolicy.parse_obj(p) for p in attached_policies])
+
+            # Get the access keys the user has and add them to the user object
+            access_keys = self.client.list_access_keys(UserName=user.user_name).get("AccessKeyMetadata", [])
+            user.access_keys.append([AccessKey.parse_obj(k) for k in access_keys])
+
+            # Get the MFA devices the user has and add them to the user object
+            mfa_devices = self.client.list_mfa_devices(UserName=user.user_name).get("MFADevices", [])
+            user.mfa_devices.append([MFADevice.parse_obj(m) for m in mfa_devices])
+
+            # Add the user to the list of users
+            users.append(user)
+
+        return users
+
+    # ------------------------------------------------------------------------ #
+
+    @cached_property
+    def groups(self) -> list[Group]:
         """Return a list of IAM groups."""
-        result: list[dict] = []
-        for i in self.client.list_groups()["Groups"]:
-            result.append({"session": self.session.profile_name, **i})
-        return result
+        groups: list[Group] = []
+        for group in self.client.list_groups()["Groups"]:
+            # Create a Group object
+            groups.append(Group.parse_obj(group))
+        return groups
 
-    @property
-    def roles(self) -> list[dict]:
+    @cached_property
+    def roles(self) -> list[Role]:
         """Return a list of IAM roles."""
-        result: list[dict] = []
-        for i in self.client.list_roles()["Roles"]:
-            result.append({"session": self.session.profile_name, **i})
-        return result
+        roles: list[Role] = []
+        for role in self.client.list_roles()["Roles"]:
+            # Create a Role object and add it to the list of roles
+            roles.append(Role.parse_obj(role))
+        return roles
 
-    @property
-    def policies(self) -> list[dict]:
+    @cached_property
+    def policies(self) -> list[Policy]:
         """Return a list of IAM policies."""
-        result: list[dict] = []
-        for i in self.client.list_policies(Scope="Local")["Policies"]:
-            result.append({"session": self.session.profile_name, **i})
-        return result
+        policies: list[Policy] = []
+        for policy in self.client.list_policies(Scope="Local")["Policies"]:
+            # Create a Policy object
+            policies.append(Policy.parse_obj(policy))
+        return policies
 
-    def get_alias(self) -> str | None:
+    @cached_property
+    def alias(self) -> str | None:
         """Return the session alias."""
-        alias = self.client.list_account_aliases()["AccountAliases"][0]
-        return alias
+        try:
+            return self.client.list_account_aliases()["AccountAliases"][0]
+        except IndexError:
+            return None
 
-    def __repr__(self) -> str:
-        return f"<IAMManager session={self.session.profile_name}>"
+    def export(self):
+        print("Exporting IAM resources...")
+        export_data = {}
+        for resource_type in self._resources:
+            print(f"Exporting {resource_type}...")
 
-    def to_dict(self, filtered: bool = True) -> dict[str, list[dict]]:
-        """Return a dictionary of the service instance data.
-
-        Args:
-        ----
-            filtered (bool, optional): Whether to filter the data. Defaults to True.
-
-        Returns:
-        -------
-            dict[str, list[dict]]: The service instance data
-        """
-        if not filtered:
-            return {
-                "Users": self.users,
-                "Groups": self.groups,
-                "Roles": self.roles,
-                "Policies": self.policies,
-            }
-
-        return {
-            "Users": filter_and_sort_dict_list(
-                self.users,
-                [
-                    "session",
-                    "UserName",
-                    "PasswordLastUsed",
-                    "Groups",
-                    "Policies",
-                    "AttachedPolicies",
-                    "AccessKeys",
-                    "MFADevices",
-                    "CreateDate",
-                ],
-            ),
-            "Groups": filter_and_sort_dict_list(
-                self.groups,
-                [
-                    "session",
-                    "GroupName",
-                    "Arn",
-                    "CreateDate",
-                ],
-            ),
-            "Roles": filter_and_sort_dict_list(
-                self.roles,
-                [
-                    "session",
-                    "RoleName",
-                    "Description",
-                    "Arn",
-                    "CreateDate",
-                ],
-            ),
-            "Policies": filter_and_sort_dict_list(
-                self.policies,
-                [
-                    "session",
-                    "PolicyName",
-                    "AttachmentCount",
-                    "Arn",
-                    "CreateDate",
-                    "UpdateDate",
-                ],
-            ),
-        }
+            export_data[resource_type] = []
+            for i in resource_type:
+                resource_data = getattr(self, resource_type)
+                for resource in resource_data:
+                    export_data[resource_type].append(resource.dict(exclude_none=True))
+        return export_data

@@ -15,7 +15,7 @@ def get_logger(name):
     """This function is used to get a logger for a module."""
 
     logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.WARNING)
 
     handler = RichHandler(
         rich_tracebacks=True,

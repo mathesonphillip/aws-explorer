@@ -1,14 +1,16 @@
 import logging
 import pytest
-from aws_explorer.session import Session
+from aws_explorer.session import Session, Profile
 
 from tests.constants import CREDENTIAL_FILE_CONTENTS, PROFILE
+
 # ---------------------------------------------------------------------------- #
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 
 # ---------------------------------------------------------------------------- #
+
 
 @pytest.fixture(scope="session")
 def credentials_path(tmp_path_factory):
@@ -23,6 +25,7 @@ def credentials_path(tmp_path_factory):
 
     logger.info("Finished with temporary credentials file")
 
+
 @pytest.fixture()
 def session(monkeypatch, credentials_path):
     """
@@ -36,8 +39,8 @@ def session(monkeypatch, credentials_path):
     monkeypatch.setenv("AWS_SHARED_CREDENTIALS_FILE", credentials_path.as_posix())
 
     # Create the session
-    session = Session(profile=PROFILE, region="us-east-1")
-    
+    session = Session(Profile())
+
     yield session
 
     logger.info("Finished with mocked AWS Credentials")

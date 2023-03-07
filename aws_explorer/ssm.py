@@ -1,69 +1,54 @@
 """ Class module for the SSMManager class, which is used to interact with the AWS SSM service. """
+from .types import SSMInstance
 
-
-import boto3
-
-from .utils import filter_and_sort_dict_list
+from typing import Callable
 
 
 class SSMManager:
 
     """This class is used to manage SSM resources."""
 
-    def __init__(self, session: boto3.Session) -> None:
-        self.session = session
-        self.client = self.session.client("ssm")
+    def __init__(self, session) -> None:
+        self.parent = session
+        self.client = self.parent._session.client("ssm")
+        self._resources: list[str] = [
+            "instances"
+            # self.parameters,
+        ]
 
     @property
     def parameters(self) -> list[dict]:
-        """Return a list of SSM parameters."""
-        result: list[dict] = []
-        for i in self.client.describe_parameters()["Parameters"]:
-            result.append({"session": self.session.profile_name, **i})
-        return result
+        ...
 
-    # @property
-    # def instances(self) -> list[dict]:
-    #     """Return a list of SSM instances."""
-    #     result: list[dict] = []
-    #     for i in self.client.describe_instance_information()["InstanceInformationlist"]:
-    #         result.append({"session": self.session.profile_name, **i})
-    #     return result
+    @property
+    def instances(self) -> list[SSMInstance]:
+        """Return a list of SSM instances."""
+        ssm_instances: list[SSMInstance] = []
+        for i in self.client.describe_instance_information()["InstanceInformationList"]:
+            instance = SSMInstance(**i)
+            instance.AccountId = self.parent.identity.account_id
+            instance.AccountName = self.parent.identity.alias
+            ssm_instances.append(instance)
 
-    # def run_command(self, instance_ids, document_name, parameters, comment):  # pylint: disable=unused-argument
-    #     """Run a command on an instance."""
+        return ssm_instances
 
-    # def to_dict(self, filtered: bool = True) -> dict[str, list[dict]]:
-    #     """Return a dictionary of the service instance data.
+    @property
+    def resources(self) -> list[Callable]:
+        """Return a list of resources."""
+        return self._resources
 
-    #     Args:
-    #     ----
-    #         filtered (bool, optional): Whether to filter the data. Defaults to True.
+    def run_command(self, instance_ids, document_name, parameters, comment):  # pylint: disable=unused-argument
+        ...
 
-    #     Returns:
-    #     -------
-    #         dict[str, list[dict]]: The service instance data
-    #     """
-    #     if not filtered:
-    #         return {"Parameters": self.parameters, "Instances": self.instances}
+    # Define an export method that looks up its current resources and loops through them to export them
+    def export(self) -> dict:
+        print("Exporting SSM resources")
 
-    #     return {
-    #         "Parameters": filter_and_sort_dict_list(self.parameters, ["session", "Name", "Type", "LastModifiedDate"]),
-    #         "Instances": filter_and_sort_dict_list(
-    #             self.instances,
-    #             [
-    #                 "session",
-    #                 "ComputerName",
-    #                 "InstanceId",
-    #                 "PingStatus",
-    #                 "LastPingDateTime",
-    #                 "AgentVersion",
-    #                 "IsLatestVersion",
-    #                 "ResourceType",
-    #                 "IPAddress",
-    #                 "PlatformType",
-    #                 "PlatformName",
-    #                 "PlatformVersion",
-    #             ],
-    #         ),
-    #     }
+        export_data = {}
+        for resource_type in self.resources:
+            export_data[resource_type] = []
+            for i in resource_type:
+                resource_data = getattr(self, resource_type)
+                for resource in resource_data:
+                    export_data[resource_type].append(resource.dict(exclude_none=True))
+        return export_data
